@@ -4,7 +4,7 @@ import categoryService from '../../services/categoryService';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
 
-const AdminCategories = () => {
+const DashboardCategories = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -75,7 +75,7 @@ const AdminCategories = () => {
     <div className="space-y-6">
       <div className="mb-6 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-techverse-green">Category Management</h1>
+          <h1 className="text-3xl font-bold text-techverse-green">Categories</h1>
           <p className="text-techverse-green/70">Create and manage content categories.</p>
         </div>
       </div>
@@ -161,4 +161,4 @@ const AdminCategories = () => {
   );
 };
 
-export default AdminCategories;
+export default DashboardCategories;

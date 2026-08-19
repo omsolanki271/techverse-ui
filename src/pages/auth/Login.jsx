@@ -14,7 +14,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,7 +31,7 @@ const Login = () => {
     try {
       // Depending on actual backend API, it might expect 'usernameOrEmail' or 'username' or 'email'.
       // We send 'usernameOrEmail' and 'password' as per typical Spring Boot setups, or adapt if known.
-      const res = await authService.login(formData);
+      const res = await authService.login(formData.usernameOrEmail, formData.password);
       // Assuming res contains accessToken and maybe user object, adjust as per backend shape
       login(res.user || res, res.accessToken || res.token);
       toast.success('Logged in successfully');
@@ -44,17 +44,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-techverse-eggshell flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex-1 bg-techverse-eggshell flex flex-col justify-center pt-28 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <Link to="/" className="inline-block">
-            <h1 className="text-4xl font-black text-techverse-green tracking-tight">TechVerse</h1>
-          </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-techverse-green">Sign in to your account</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-techverse-green">Sign in to your account</h2>
           <p className="mt-2 text-sm text-techverse-green/70">
             Or{' '}
             <Link to="/auth/register" className="font-medium text-techverse-olive hover:text-techverse-green transition-colors">

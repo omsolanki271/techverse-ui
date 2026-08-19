@@ -28,12 +28,9 @@ import Overview from './pages/dashboard/Overview';
 import DashboardArticles from './pages/dashboard/DashboardArticles';
 import Editor from './pages/dashboard/Editor';
 import MyMedia from './pages/dashboard/MyMedia';
+import DashboardCategories from './pages/dashboard/DashboardCategories';
 
-// Dashboard Placeholders
-const DashboardDrafts = () => <div className="p-8 text-2xl font-bold text-techverse-green">Drafts</div>;
 const DashboardComments = () => <div className="p-8 text-2xl font-bold text-techverse-green">Comments</div>;
-const DashboardAuthors = () => <div className="p-8 text-2xl font-bold text-techverse-green">Authors</div>;
-const DashboardNotifications = () => <div className="p-8 text-2xl font-bold text-techverse-green">Notifications</div>;
 
 // Admin Pages
 import AdminOverview from './pages/admin/AdminOverview';
@@ -89,14 +86,11 @@ function App() {
               <Route path="articles/new" element={<Editor />} />
               <Route path="articles/:id/edit" element={<Editor />} />
               <Route path="media" element={<MyMedia />} />
-              <Route path="drafts" element={<DashboardDrafts />} />
+              <Route path="categories" element={<DashboardCategories />} />
               <Route path="comments" element={<DashboardComments />} />
-              <Route path="authors" element={<DashboardAuthors />} />
-              <Route path="notifications" element={<DashboardNotifications />} />
-              <Route path="settings" element={<div className="text-2xl font-bold text-techverse-green">Settings</div>} />
             </Route>
-            {/* Profile redirects to dashboard settings for now */}
-            <Route path="/profile" element={<Navigate to="/dashboard/settings" replace />} />
+            {/* Profile redirects to dashboard overview for now */}
+            <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
             {/* Open Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

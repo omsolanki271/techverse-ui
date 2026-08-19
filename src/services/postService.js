@@ -1,122 +1,56 @@
-import { delay, getDb, setDb } from './mockDb';
-
-const paginateAndSort = (items, params) => {
-  const { pageNumber = 0, pageSize = 10, sortBy = 'addedDate', sortDirection = 'desc' } = params || {};
-  
-  const sorted = [...items].sort((a, b) => {
-    let valA = a[sortBy];
-    let valB = b[sortBy];
-    if (sortBy === 'addedDate') {
-      valA = new Date(valA).getTime();
-      valB = new Date(valB).getTime();
-    }
-    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  const start = pageNumber * pageSize;
-  const paged = sorted.slice(start, start + pageSize);
-  
-  return {
-    content: paged,
-    pageNumber,
-    pageSize,
-    totalElements: items.length,
-    totalPages: Math.ceil(items.length / pageSize),
-    lastPage: start + pageSize >= items.length
-  };
-};
+import api from './api';
 
 const postService = {
   createPost: async (categoryId, postData) => {
-    await delay(600);
-    const posts = getDb('posts');
-    const categories = getDb('categories');
-    
-    // In a real app we'd get the user from the token context on backend
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const category = categories.find(c => c.categoryId === categoryId);
-
-    const newPost = {
-      postId: `post_${Date.now()}`,
-      ...postData,
-      addedDate: new Date().toISOString(),
-      category: category || null,
-      user: {
-        id: currentUser.userId || currentUser.id || 'anon',
-        name: currentUser.name || 'Anonymous',
-        username: currentUser.username || 'anon'
-      }
-    };
-    
-    posts.push(newPost);
-    setDb('posts', posts);
-    return newPost;
+    // API maps to POST /api/posts/category/{categoryId}/posts
+    const response = await api.post(`/posts/category/${categoryId}/posts`, postData);
+    return response.data;
   },
 
   updatePost: async (postId, postData) => {
-    await delay(600);
-    const posts = getDb('posts');
-    const index = posts.findIndex(p => p.postId === postId);
-    if (index === -1) throw new Error('Post not found');
-    
-    posts[index] = { ...posts[index], ...postData };
-    setDb('posts', posts);
-    return posts[index];
+    const response = await api.put(`/posts/${postId}`, postData);
+    return response.data;
   },
 
   getAllPosts: async (params = {}) => {
-    await delay(400);
-    return paginateAndSort(getDb('posts'), params);
+    // API maps to GET /api/posts/
+    // It accepts pageNumber, pageSize, sortBy, sortDirection as params
+    const response = await api.get('/posts/', { params });
+    return response.data;
   },
 
   getPostById: async (postId) => {
-    await delay(300);
-    const post = getDb('posts').find(p => p.postId === postId);
-    if (!post) throw new Error('Post not found');
-    return post;
+    const response = await api.get(`/posts/${postId}`);
+    return response.data;
   },
 
   getPostsByUser: async (userId, params = {}) => {
-    await delay(400);
-    const posts = getDb('posts').filter(p => p.user?.id === userId || p.user?.userId === userId);
-    return paginateAndSort(posts, params);
+    const response = await api.get(`/posts/user/${userId}/posts`, { params });
+    return response.data;
   },
 
   getPostsByCategory: async (categoryId, params = {}) => {
-    await delay(400);
-    const posts = getDb('posts').filter(p => p.category?.categoryId === categoryId);
-    return paginateAndSort(posts, params);
+    const response = await api.get(`/posts/category/${categoryId}/posts`, { params });
+    return response.data;
   },
 
   searchPosts: async (keyword, params = {}) => {
-    await delay(400);
-    const lower = keyword.toLowerCase();
-    const posts = getDb('posts').filter(p => 
-      p.title.toLowerCase().includes(lower) || 
-      p.content.toLowerCase().includes(lower)
-    );
-    return paginateAndSort(posts, params);
+    // API maps to GET /api/posts/search?keyword=...
+    // The backend endpoint returns a List<PostDto>, not a paginated PostResponse.
+    const response = await api.get('/posts/search', { params: { keyword, ...params } });
+    return response.data;
   },
 
   deletePost: async (postId) => {
-    await delay(600);
-    const posts = getDb('posts');
-    setDb('posts', posts.filter(p => p.postId !== postId));
-    return { success: true };
+    const response = await api.delete(`/posts/${postId}`);
+    return response.data;
   },
 
-  // Simulating image serving by returning the URL directly if it's external, or a placeholder if mocked
   getPostImage: (postId) => {
-    const post = getDb('posts').find(p => p.postId === postId);
-    if (post && post.imageName && post.imageName !== 'default.png') {
-      // If it's a full URL (like from mockData) return it directly
-      if (post.imageName.startsWith('http')) return post.imageName;
-      // Otherwise mock it
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
-    }
-    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+    // Return the URL directly using the base URL
+    // We assume VITE_API_BASE_URL is something like "http://localhost:8081/api"
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
+    return `${baseUrl}/posts/image/${postId}`;
   }
 };
 

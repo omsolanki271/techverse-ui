@@ -22,6 +22,9 @@ const Editor = () => {
   // Media handling
   const [selectedMediaId, setSelectedMediaId] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [mediaItems, setMediaItems] = useState([]);
+  const [loadingMedia, setLoadingMedia] = useState(false);
   
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -54,7 +57,6 @@ const Editor = () => {
           if (post.category) setCategoryId(post.category.categoryId);
           if (post.imageName && post.imageName !== 'default.png') {
             setMediaPreview(postService.getPostImage(post.postId));
-            // We might not have mediaId directly if backend uses imageName, but we store preview
           }
         } catch (err) {
           toast.error('Failed to load post for editing');
@@ -78,7 +80,6 @@ const Editor = () => {
       const postData = {
         title,
         content,
-        // The prompt says send mediaId
         ...(selectedMediaId && { mediaId: selectedMediaId })
       };
 
@@ -91,16 +92,42 @@ const Editor = () => {
       }
       navigate('/dashboard/articles');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save post');
+      console.error('Save post error:', err);
+      if (err.response?.data) {
+        if (typeof err.response.data === 'object' && !err.response.data.message && !err.response.data.success) {
+          const errors = Object.values(err.response.data);
+          toast.error(errors[0] || 'Validation failed');
+        } else {
+          toast.error(err.response.data.message || 'Failed to save post');
+        }
+      } else {
+        toast.error('Failed to save post');
+      }
     } finally {
       setSaving(false);
     }
   };
 
-  const handleMediaSelect = () => {
-    // In a full implementation, this would open a modal with the user's media library
-    // For now, we'll prompt for an upload flow or simulate a selection
-    toast.info('Media library modal would open here to select or upload an image. (See My Media page)');
+  const openMediaModal = async () => {
+    setShowMediaModal(true);
+    if (mediaItems.length === 0) {
+      setLoadingMedia(true);
+      try {
+        const userId = user?.userId || user?.id;
+        const items = await mediaService.getUserMedia(userId);
+        setMediaItems(items || []);
+      } catch (err) {
+        toast.error('Failed to load media library');
+      } finally {
+        setLoadingMedia(false);
+      }
+    }
+  };
+
+  const selectMediaItem = (media) => {
+    setSelectedMediaId(media.mediaId);
+    setMediaPreview(mediaService.getMediaUrl(media.mediaId));
+    setShowMediaModal(false);
   };
 
   if (loading) {
@@ -218,7 +245,7 @@ const Editor = () => {
                     </div>
                   ) : (
                     <div 
-                      onClick={handleMediaSelect}
+                      onClick={openMediaModal}
                       className="border-2 border-dashed border-techverse-green/20 rounded-2xl p-8 text-center bg-techverse-eggshell/30 hover:bg-techverse-eggshell/70 transition-colors cursor-pointer group"
                     >
                       <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
@@ -234,6 +261,57 @@ const Editor = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Media Selector Modal */}
+      {showMediaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden shadow-2xl"
+          >
+            <div className="p-6 border-b border-techverse-green/10 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-techverse-green">Select Media</h2>
+              <button onClick={() => setShowMediaModal(false)} className="p-2 hover:bg-techverse-eggshell rounded-full transition-colors">
+                <X size={24} className="text-techverse-green/60" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-techverse-eggshell/30">
+              {loadingMedia ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-techverse-olive" />
+                </div>
+              ) : mediaItems.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {mediaItems.map(item => (
+                    <div 
+                      key={item.mediaId} 
+                      onClick={() => selectMediaItem(item)}
+                      className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-techverse-olive cursor-pointer group relative bg-white shadow-sm"
+                    >
+                      <img 
+                        src={mediaService.getMediaUrl(item.mediaId)} 
+                        alt={item.fileName} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-techverse-green/0 group-hover:bg-techverse-green/20 transition-colors flex items-center justify-center">
+                        <CheckCircle2 size={32} className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <ImageIcon size={48} className="mx-auto mb-4 text-techverse-green/30" />
+                  <p className="text-techverse-green/60">No media found. Go to "My Media" to upload images first.</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 };

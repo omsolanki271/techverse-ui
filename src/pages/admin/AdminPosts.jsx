@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Edit, Trash2, Eye } from 'lucide-react';
 import postService from '../../services/postService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const AdminPosts = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchPosts();
@@ -25,7 +27,7 @@ const AdminPosts = () => {
   };
 
   const handleDelete = async (postId) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    if (!(await confirm('Are you sure you want to delete this post?'))) return;
     try {
       await postService.deletePost(postId);
       setPosts(posts.filter(p => p.postId !== postId));

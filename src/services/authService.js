@@ -1,46 +1,29 @@
-import { delay, getDb, setDb } from './mockDb';
+import api from './api';
 
 const authService = {
   login: async (username, password) => {
-    await delay(600);
-    const users = getDb('users');
-    const user = users.find(u => (u.username === username || u.email === username) && u.password === password);
-    
-    if (user) {
-      // Mock JWT token
-      const token = `mock_token_${user.id}_${Date.now()}`;
-      return {
-        token,
-        user
-      };
+    try {
+      const response = await api.post('/auth/login', {
+        email: username,
+        password: password
+      });
+      return response.data; // Expected to return { token, user: {...} }
+    } catch (error) {
+      throw error;
     }
-    
-    const error = new Error('Invalid username or password');
-    error.response = { data: { message: 'Invalid username or password' } };
-    throw error;
   },
 
   register: async (userData) => {
-    await delay(800);
-    const users = getDb('users');
-    
-    if (users.find(u => u.username === userData.username || u.email === userData.email)) {
-      const error = new Error('User already exists');
-      error.response = { data: { message: 'Username or Email already exists!' } };
+    try {
+      // Backend UserDto requires 'about' field, but the frontend Register UI might not have it.
+      if (!userData.about) {
+        userData.about = 'I am a new user on TechVerse.';
+      }
+      const response = await api.post('/users/', userData);
+      return response.data;
+    } catch (error) {
       throw error;
     }
-    
-    const newUser = {
-      id: `u_${Date.now()}`,
-      userId: `u_${Date.now()}`,
-      ...userData,
-      roles: [{ id: 2, name: 'ROLE_USER' }]
-    };
-    
-    users.push(newUser);
-    setDb('users', users);
-    
-    return newUser;
   }
 };
 

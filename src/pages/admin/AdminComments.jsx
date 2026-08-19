@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Trash2 } from 'lucide-react';
 import commentService from '../../services/commentService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const AdminComments = () => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchComments();
@@ -24,7 +26,7 @@ const AdminComments = () => {
   };
 
   const handleDelete = async (commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+    if (!(await confirm('Are you sure you want to delete this comment?'))) return;
     try {
       await commentService.deleteComment(commentId);
       setComments(comments.filter(c => c.commentId !== commentId && c.id !== commentId));

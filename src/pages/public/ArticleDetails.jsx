@@ -9,12 +9,14 @@ import postService from '../../services/postService';
 import commentService from '../../services/commentService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const ArticleDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   
   const [article, setArticle] = useState(null);
   const [comments, setComments] = useState([]);
@@ -74,7 +76,7 @@ const ArticleDetails = () => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+    if (!(await confirm('Are you sure you want to delete this comment?'))) return;
     try {
       await commentService.deleteComment(commentId);
       setComments(comments.filter(c => c.id !== commentId && c.commentId !== commentId));

@@ -33,24 +33,30 @@ const Register = () => {
       toast.success('Registration successful! Please login.');
       navigate('/auth/login');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to register. Please try again.');
+      if (err.response?.data) {
+        if (typeof err.response.data === 'object' && !err.response.data.message && !err.response.data.success) {
+          const errors = Object.values(err.response.data);
+          toast.error(errors[0] || 'Validation failed');
+        } else {
+          toast.error(err.response.data.message || 'Failed to register. Please try again.');
+        }
+      } else {
+        toast.error('Failed to register. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-techverse-eggshell flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex-1 bg-techverse-eggshell flex flex-col justify-center pt-28 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <Link to="/" className="inline-block">
-            <h1 className="text-4xl font-black text-techverse-green tracking-tight">TechVerse</h1>
-          </Link>
-          <h2 className="mt-6 text-3xl font-extrabold text-techverse-green">Create your account</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-techverse-green">Create your account</h2>
           <p className="mt-2 text-sm text-techverse-green/70">
             Already have an account?{' '}
             <Link to="/auth/login" className="font-medium text-techverse-olive hover:text-techverse-green transition-colors">

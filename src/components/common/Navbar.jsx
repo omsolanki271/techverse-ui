@@ -31,7 +31,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Explore', path: '/explore' },
-    { name: 'Categories', path: '/categories' },
   ];
 
   return (
@@ -70,9 +69,13 @@ const Navbar = () => {
             
             {user ? (
               <div className="flex items-center space-x-4 ml-2 pl-4">
-                <Link to={isAdmin() ? "/admin" : "/dashboard"} className="flex items-center space-x-2 text-techverse-olive hover:text-techverse-eggshell transition-colors">
-                  <BookOpen size={20} />
-                  <span className="text-sm font-medium">{isAdmin() ? 'Admin' : 'Dashboard'}</span>
+                <Link to={isAdmin() ? "/admin" : "/dashboard"} className="flex items-center space-x-2 group">
+                  <div className="w-8 h-8 rounded-full border border-techverse-olive/50 group-hover:border-techverse-olive transition-colors bg-techverse-olive text-techverse-green flex items-center justify-center font-bold text-sm">
+                    {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                  </div>
+                  <span className={`text-sm font-medium hidden lg:block transition-colors ${isScrolled ? 'text-techverse-eggshell' : 'text-techverse-green'}`}>
+                    {user?.name || user?.username || 'Profile'}
+                  </span>
                 </Link>
                 <div className="h-6 w-px bg-techverse-olive/30"></div>
                 <button 
@@ -134,7 +137,10 @@ const Navbar = () => {
                 {user ? (
                   <>
                     <Link to={isAdmin() ? "/admin" : "/dashboard"} onClick={() => setMobileMenuOpen(false)} className="flex items-center px-3 py-3 text-base font-medium hover:text-techverse-olive">
-                      <BookOpen size={20} className="mr-3" /> {isAdmin() ? 'Admin Dashboard' : 'Dashboard'}
+                      <div className="w-6 h-6 mr-3 rounded-full bg-techverse-olive text-techverse-green flex items-center justify-center font-bold text-xs">
+                        {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                      </div>
+                      {isAdmin() ? 'Admin Panel' : 'My Profile / Dashboard'}
                     </Link>
                     <button onClick={handleLogout} className="flex w-full items-center px-3 py-3 text-base font-medium text-red-400 hover:text-red-300">
                       <LogOut size={20} className="mr-3" /> Logout

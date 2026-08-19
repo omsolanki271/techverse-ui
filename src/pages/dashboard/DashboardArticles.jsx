@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import postService from '../../services/postService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const DashboardArticles = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,6 +15,7 @@ const DashboardArticles = () => {
   
   const { user } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -32,7 +34,7 @@ const DashboardArticles = () => {
   }, [user, toast]);
 
   const handleDelete = async (postId) => {
-    if (!window.confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
+    if (!(await confirm('Are you sure you want to delete this post? This cannot be undone.'))) return;
     try {
       await postService.deletePost(postId);
       setArticles(articles.filter(a => a.postId !== postId));
@@ -122,7 +124,7 @@ const DashboardArticles = () => {
               <div className="w-16 h-16 rounded-full bg-techverse-olive/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <PenTool size={28} />
               </div>
-              <span className="font-bold text-lg">Start a New Draft</span>
+              <span className="font-bold text-lg">Start a New Post</span>
             </Link>
           </motion.div>
 

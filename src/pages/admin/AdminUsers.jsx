@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { Edit, Trash2 } from 'lucide-react';
 import userService from '../../services/userService';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchUsers();
@@ -25,7 +27,7 @@ const AdminUsers = () => {
   };
 
   const handleDelete = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    if (!(await confirm('Are you sure you want to delete this user?'))) return;
     try {
       await userService.deleteUser(userId);
       setUsers(users.filter(u => u.id !== userId && u.userId !== userId));

@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 import mediaService from '../../services/mediaService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 const MyMedia = () => {
   const { user, isAdmin } = useAuth();
   const toast = useToast();
+  const confirm = useConfirm();
   const fileInputRef = useRef(null);
 
   const [mediaItems, setMediaItems] = useState([]);
@@ -67,7 +69,7 @@ const MyMedia = () => {
   };
 
   const handleDelete = async (mediaId) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) return;
+    if (!(await confirm('Are you sure you want to delete this image?'))) return;
     
     try {
       await mediaService.deleteMedia(mediaId);
