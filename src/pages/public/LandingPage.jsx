@@ -34,7 +34,7 @@ const LandingPage = () => {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.1, delayChildren: 0.2 }
     }
@@ -61,7 +61,7 @@ const LandingPage = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -70,11 +70,11 @@ const LandingPage = () => {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
+
           {/* Hero Content */}
           <motion.div variants={itemVariants} className="lg:col-span-5">
             <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6">
-              Ideas shaping the <br/>
+              Ideas shaping the <br />
               <span className="text-techverse-olive">technology of tomorrow.</span>
             </h1>
             <p className="text-lg opacity-80 mb-8 max-w-lg leading-relaxed">
@@ -95,13 +95,13 @@ const LandingPage = () => {
             <motion.div variants={itemVariants} className="lg:col-span-7">
               <Link to={`/article/${featuredArticle.postId}`} className="block group">
                 <div className="relative overflow-hidden rounded-sm bg-techverse-green h-[500px]">
-                  <img 
-                    src={getImageUrl(featuredArticle.imageName, featuredArticle.postId)} 
-                    alt={featuredArticle.title} 
+                  <img
+                    src={getImageUrl(featuredArticle.imageName, featuredArticle.postId)}
+                    alt={featuredArticle.title}
                     className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-techverse-green via-techverse-green/40 to-transparent opacity-90"></div>
-                  
+
                   <div className="absolute bottom-0 left-0 p-8 w-full text-techverse-eggshell">
                     <div className="flex items-center space-x-3 mb-4">
                       {featuredArticle.category && (
@@ -119,7 +119,7 @@ const LandingPage = () => {
               </Link>
             </motion.div>
           )}
-          
+
         </div>
       </section>
 
@@ -128,12 +128,12 @@ const LandingPage = () => {
         <section className="bg-techverse-green text-techverse-eggshell py-20 mb-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div variants={itemVariants} className="flex items-center justify-between mb-12 border-b border-techverse-olive/30 pb-6">
-              <h2 className="text-3xl font-black flex items-center">
+              <h2 className="text-3xl font-black flex items-center text-techverse-eggshell">
                 <TrendingUp className="mr-3 text-techverse-olive" size={28} />
                 Trending Now
               </h2>
             </motion.div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {trendingArticles.map((article, index) => (
                 <motion.div variants={itemVariants} key={article.postId} className="flex gap-6 group">
@@ -147,11 +147,11 @@ const LandingPage = () => {
                       </Link>
                     )}
                     <Link to={`/article/${article.postId}`}>
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-techverse-olive transition-colors">
+                      <h3 className="text-xl font-bold mb-2 text-techverse-eggshell group-hover:text-techverse-olive transition-colors">
                         {article.title}
                       </h3>
                     </Link>
-                    <div className="text-xs opacity-60 mt-4">
+                    <div className="text-xs text-techverse-eggshell/70 mt-4 font-medium">
                       {new Date(article.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
@@ -176,9 +176,9 @@ const LandingPage = () => {
             {latestArticles.map((article) => (
               <motion.div variants={itemVariants} key={article.postId} className="group cursor-pointer">
                 <div className="overflow-hidden rounded-sm mb-4 h-56 bg-techverse-green relative">
-                  <img 
-                    src={getImageUrl(article.imageName, article.postId)} 
-                    alt={article.title} 
+                  <img
+                    src={getImageUrl(article.imageName, article.postId)}
+                    alt={article.title}
                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
                   />
                 </div>
@@ -230,7 +230,7 @@ const LandingPage = () => {
             }
           }
         });
-        const bloggersList = Array.from(authorsMap.values());
+        const bloggersList = Array.from(authorsMap.values()).slice(0, 3);
 
         if (bloggersList.length === 0) return null;
 
@@ -250,9 +250,9 @@ const LandingPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {bloggersList.map((blogger) => (
-                  <motion.div 
-                    variants={itemVariants} 
-                    key={blogger.id} 
+                  <motion.div
+                    variants={itemVariants}
+                    key={blogger.id}
                     className="bg-white/5 border border-techverse-olive/20 rounded-xl p-6 hover:bg-white/10 hover:border-techverse-olive/50 transition-all duration-300 flex flex-col justify-between group"
                   >
                     <div>
@@ -275,7 +275,7 @@ const LandingPage = () => {
                       </p>
                     </div>
 
-                    <Link 
+                    <Link
                       to={`/author/${blogger.id}`}
                       className="w-full py-2.5 px-4 bg-techverse-olive text-techverse-green rounded-lg font-bold text-xs flex items-center justify-center hover:bg-techverse-olive/90 transition-colors shadow-sm"
                     >
@@ -297,11 +297,11 @@ const LandingPage = () => {
               <h2 className="text-3xl font-black mb-4">Explore Categories</h2>
               <p className="opacity-70 max-w-2xl mx-auto">Dive deep into specific technology domains curated by our editorial team.</p>
             </motion.div>
-            
+
             <div className="flex flex-wrap justify-center gap-4">
               {categories.map((category) => (
                 <motion.div variants={itemVariants} key={category.categoryId}>
-                  <Link 
+                  <Link
                     to={`/category/${category.categoryId}`}
                     className="inline-block px-6 py-3 bg-techverse-eggshell border border-techverse-green/20 rounded-sm font-medium hover:bg-techverse-green hover:text-techverse-eggshell transition-all shadow-sm"
                   >

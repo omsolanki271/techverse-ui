@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  User, Mail, Phone, MapPin, Globe, 
+import {
+  User, Mail, Phone, MapPin, Globe,
   Shield, Key, Save, BookOpen, Layers, CheckCircle2, AlertCircle, RefreshCw
 } from 'lucide-react';
 
@@ -73,7 +73,7 @@ const Profile = () => {
         setLoading(true);
         // Fetch latest user details from API
         const data = await userService.getUserById(userId);
-        
+
         setFormData(prev => ({
           ...prev,
           name: data.name || user?.name || '',
@@ -164,17 +164,17 @@ const Profile = () => {
       }
 
       const updatedUser = await userService.updateUser(userId, updatePayload);
-      
+
       // Update global AuthContext state so Navbar and Dock reflect changes
       updateUserContext(updatedUser);
 
       toast.success('Profile updated successfully!');
-      
+
       // Reset password fields
       setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
     } catch (error) {
       console.error('Error updating profile:', error);
-      const errorMsg = error.response?.data?.message 
+      const errorMsg = error.response?.data?.message
         || (typeof error.response?.data === 'string' ? error.response.data : null)
         || (error.response?.data && typeof error.response.data === 'object' ? Object.values(error.response.data)[0] : null)
         || 'Failed to update profile.';
@@ -199,9 +199,9 @@ const Profile = () => {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
-      
+
       {/* Header Banner & User Card */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative bg-white rounded-2xl shadow-md border border-techverse-green/10 overflow-hidden"
@@ -227,10 +227,10 @@ const Profile = () => {
             {/* Info */}
             <div className="pb-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl sm:text-3xl font-black text-techverse-green">{formData.name || 'User Name'}</h1>
-                <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
+                <h1 className="text-2xl sm:text-3xl font-black text-techverse-eggshell">{formData.name || 'User Name'}</h1>
+                {/* <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
                   {roleName.replace('ROLE_', '')}
-                </span>
+                </span> */}
               </div>
               <p className="text-sm text-techverse-green/70 flex items-center justify-center sm:justify-start mt-1">
                 <Mail size={14} className="mr-1.5 opacity-70" />
@@ -263,11 +263,10 @@ const Profile = () => {
         <div className="flex border-t border-techverse-green/10 px-6 overflow-x-auto scrollbar-hide bg-gray-50/50">
           <button
             onClick={() => setActiveTab('personal')}
-            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'personal'
+            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'personal'
                 ? 'border-techverse-green text-techverse-green'
                 : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
-            }`}
+              }`}
           >
             <User size={16} />
             <span>Personal Information</span>
@@ -275,11 +274,10 @@ const Profile = () => {
 
           <button
             onClick={() => setActiveTab('social')}
-            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'social'
+            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'social'
                 ? 'border-techverse-green text-techverse-green'
                 : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
-            }`}
+              }`}
           >
             <Globe size={16} />
             <span>Social Profiles</span>
@@ -287,11 +285,10 @@ const Profile = () => {
 
           <button
             onClick={() => setActiveTab('security')}
-            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'security'
+            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'security'
                 ? 'border-techverse-green text-techverse-green'
                 : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
-            }`}
+              }`}
           >
             <Shield size={16} />
             <span>Security & Password</span>
@@ -299,11 +296,10 @@ const Profile = () => {
 
           <button
             onClick={() => setActiveTab('stats')}
-            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'stats'
+            className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'stats'
                 ? 'border-techverse-green text-techverse-green'
                 : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
-            }`}
+              }`}
           >
             <BookOpen size={16} />
             <span>My Articles & Activity</span>
@@ -321,7 +317,7 @@ const Profile = () => {
       >
         {activeTab !== 'stats' ? (
           <form onSubmit={handleSaveProfile} className="space-y-6">
-            
+
             {/* PERSONAL INFORMATION TAB */}
             {activeTab === 'personal' && (
               <div className="space-y-6">
@@ -572,8 +568,8 @@ const Profile = () => {
                       <h4 className="font-extrabold text-techverse-green text-base mb-1">{post.title || post.postTitle}</h4>
                       <p className="text-xs text-techverse-green/60 line-clamp-1">{post.content?.replace(/<[^>]*>?/gm, '')}</p>
                     </div>
-                    <a 
-                      href={`/article/${post.postId || post.id}`} 
+                    <a
+                      href={`/article/${post.postId || post.id}`}
                       className="px-3 py-1.5 rounded-lg bg-techverse-olive/20 text-techverse-green hover:bg-techverse-olive font-bold text-xs whitespace-nowrap transition-colors"
                     >
                       View Post

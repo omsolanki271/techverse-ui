@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  User, Mail, MapPin, Globe, BookOpen, Clock, 
-  ArrowLeft, RefreshCw, CheckCircle2, ArrowRight 
+import {
+  User, Mail, MapPin, Globe, BookOpen, Clock,
+  ArrowLeft, RefreshCw, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import userService from '../../services/userService';
 import postService from '../../services/postService';
@@ -57,7 +57,7 @@ const AuthorProfile = () => {
         if (postsData.status === 'fulfilled') {
           const fetchedPosts = postsData.value?.content || (Array.isArray(postsData.value) ? postsData.value : []);
           setPosts(fetchedPosts);
-          
+
           // Fallback author info from first post if getUserById failed or restricted
           if (userData.status !== 'fulfilled' && fetchedPosts.length > 0 && fetchedPosts[0].user) {
             setAuthor(fetchedPosts[0].user);
@@ -98,7 +98,7 @@ const AuthorProfile = () => {
   return (
     <div className="pt-24 pb-20 bg-techverse-eggshell min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        
+
         {/* Back Link */}
         <div>
           <Link to="/" className="inline-flex items-center text-sm font-bold text-techverse-green hover:text-techverse-olive transition-colors">
@@ -107,7 +107,7 @@ const AuthorProfile = () => {
         </div>
 
         {/* Author Hero Card */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="relative bg-white rounded-2xl shadow-md border border-techverse-green/10 overflow-hidden"
@@ -133,12 +133,12 @@ const AuthorProfile = () => {
               {/* Author Info */}
               <div className="pb-1">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h1 className="text-3xl font-black text-techverse-green">{author?.name || author?.username || `Author #${userId}`}</h1>
-                  <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
+                  <h1 className="text-3xl font-black text-techverse-eggshell">{author?.name || author?.username || `Author #${userId}`}</h1>
+                  {/* <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
                     {roleName.replace('ROLE_', '')}
-                  </span>
+                  </span> */}
                 </div>
-                
+
                 {author?.about && (
                   <p className="text-sm text-techverse-green/80 mt-2 max-w-xl line-clamp-2 leading-relaxed">
                     {author.about}
@@ -206,16 +206,16 @@ const AuthorProfile = () => {
           {posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {posts.map((article) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  key={article.postId || article.id} 
+                  key={article.postId || article.id}
                   className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-techverse-green/10 overflow-hidden flex flex-col transition-all duration-300"
                 >
                   <div className="overflow-hidden h-52 bg-techverse-green relative">
-                    <img 
-                      src={getImageUrl(article.imageName, article.postId || article.id)} 
-                      alt={article.title || article.postTitle} 
+                    <img
+                      src={getImageUrl(article.imageName, article.postId || article.id)}
+                      alt={article.title || article.postTitle}
                       className="w-full h-full object-cover opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
                     />
                     {article.category && (
@@ -242,7 +242,7 @@ const AuthorProfile = () => {
                         <Clock size={14} className="mr-1 opacity-70" />
                         {new Date(article.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <Link 
+                      <Link
                         to={`/article/${article.postId || article.id}`}
                         className="font-bold text-techverse-olive hover:underline flex items-center"
                       >
