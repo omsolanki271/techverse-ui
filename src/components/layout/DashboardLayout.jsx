@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, PenTool, FolderTree,
   MessageSquare, Settings, LogOut, Search, Image as ImageIcon,
-  FileEdit, BarChart2, Users, Bell
+  FileEdit, BarChart2, Users, Bell, User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -42,6 +42,7 @@ const DashboardLayout = () => {
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { to: '/dashboard/articles', icon: BookOpen, label: 'My Posts' },
     { to: '/dashboard/media', icon: ImageIcon, label: 'My Media' },
+    { to: '/dashboard/profile', icon: User, label: 'My Profile' },
   ];
 
   return (
@@ -63,7 +64,7 @@ const DashboardLayout = () => {
             <Search size={18} />
           </Link>
           <div className="w-px h-6 bg-techverse-green/20 mx-1 sm:mx-2"></div>
-          <div className="flex items-center space-x-3 cursor-pointer group">
+          <Link to="/dashboard" className="flex items-center space-x-3 cursor-pointer group">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-techverse-olive/50 group-hover:border-techverse-olive transition-colors bg-techverse-green text-techverse-eggshell flex items-center justify-center font-bold text-xs sm:text-sm">
               {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
             </div>
@@ -71,7 +72,7 @@ const DashboardLayout = () => {
               <div className="text-sm font-bold text-techverse-green leading-none">{user?.name || user?.username || 'User'}</div>
               <div className="text-xs text-techverse-green/70">{user?.roles?.[0]?.name || 'USER'}</div>
             </div>
-          </div>
+          </Link>
           <button onClick={handleLogout} className="text-techverse-green opacity-50 hover:text-red-500 hover:opacity-100 transition-colors ml-1 sm:ml-2" title="Sign Out">
             <LogOut size={16} />
           </button>

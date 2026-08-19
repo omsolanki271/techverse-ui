@@ -16,6 +16,11 @@ const userService = {
     return response.data;
   },
 
+  getUserById: async (userId) => {
+    const response = await api.get(`/users/${userId}`);
+    return response.data;
+  },
+
   updateUser: async (userId, userData) => {
     const response = await api.put(`/users/${userId}`, userData);
     return response.data;

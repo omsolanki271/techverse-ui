@@ -194,16 +194,100 @@ const LandingPage = () => {
                     {article.title}
                   </h3>
                 </Link>
-                <div className="flex items-center text-xs opacity-60 font-medium mt-4">
+                <div className="flex items-center justify-between text-xs opacity-80 font-medium mt-4 pt-3 border-t border-techverse-green/10">
                   <span>{new Date(article.addedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-                  <span className="mx-2">•</span>
-                  <span>{article.user?.name || 'Anonymous'}</span>
+                  {article.user && (
+                    <Link to={`/author/${article.user.id}`} className="font-bold text-techverse-green hover:text-techverse-olive transition-colors flex items-center">
+                      <span className="w-5 h-5 rounded-full bg-techverse-green text-techverse-eggshell text-[10px] flex items-center justify-center mr-1.5 font-black">
+                        {article.user.name?.charAt(0) || 'A'}
+                      </span>
+                      {article.user.name || 'Author'}
+                    </Link>
+                  )}
                 </div>
               </motion.div>
             ))}
           </div>
         </section>
       )}
+
+      {/* Featured Bloggers / Author Profiles Section */}
+      {(() => {
+        const authorsMap = new Map();
+        articles.forEach(art => {
+          if (art.user && art.user.id) {
+            const u = art.user;
+            if (!authorsMap.has(u.id)) {
+              authorsMap.set(u.id, {
+                id: u.id,
+                name: u.name || 'TechVerse Blogger',
+                email: u.email || '',
+                about: u.about || 'Active contributor and tech writer sharing perspectives on TechVerse.',
+                postCount: 1
+              });
+            } else {
+              authorsMap.get(u.id).postCount += 1;
+            }
+          }
+        });
+        const bloggersList = Array.from(authorsMap.values());
+
+        if (bloggersList.length === 0) return null;
+
+        return (
+          <section className="bg-techverse-green text-techverse-eggshell py-20 mb-24 relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 border-b border-techverse-olive/30 pb-6 gap-4">
+                <div>
+                  <h2 className="text-3xl font-black flex items-center text-techverse-eggshell">
+                    Featured Bloggers & Authors
+                  </h2>
+                  <p className="text-xs text-techverse-eggshell/70 mt-1">
+                    Click any blogger profile to read all articles authored by them.
+                  </p>
+                </div>
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {bloggersList.map((blogger) => (
+                  <motion.div 
+                    variants={itemVariants} 
+                    key={blogger.id} 
+                    className="bg-white/5 border border-techverse-olive/20 rounded-xl p-6 hover:bg-white/10 hover:border-techverse-olive/50 transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="w-14 h-14 rounded-full bg-techverse-olive text-techverse-green flex items-center justify-center font-black text-xl shadow-md group-hover:scale-105 transition-transform">
+                          {blogger.name?.charAt(0)?.toUpperCase() || 'B'}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-techverse-eggshell group-hover:text-techverse-olive transition-colors">
+                            {blogger.name}
+                          </h3>
+                          <span className="inline-block text-[11px] font-extrabold uppercase bg-techverse-olive/20 text-techverse-olive px-2.5 py-0.5 rounded-full mt-0.5">
+                            {blogger.postCount} {blogger.postCount === 1 ? 'Article' : 'Articles'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-techverse-eggshell/70 line-clamp-3 mb-6 leading-relaxed">
+                        {blogger.about}
+                      </p>
+                    </div>
+
+                    <Link 
+                      to={`/author/${blogger.id}`}
+                      className="w-full py-2.5 px-4 bg-techverse-olive text-techverse-green rounded-lg font-bold text-xs flex items-center justify-center hover:bg-techverse-olive/90 transition-colors shadow-sm"
+                    >
+                      View All Posts by {blogger.name.split(' ')[0]} <ArrowRight size={14} className="ml-2" />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Explore Categories */}
       {categories.length > 0 && (

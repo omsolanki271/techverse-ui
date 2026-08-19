@@ -51,13 +51,21 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUserContext = (updatedData) => {
+    setUser(prev => {
+      const merged = { ...prev, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   const isAdmin = () => {
     if (!user || !user.roles) return false;
     return user.roles.some(role => role.name === 'ROLE_ADMIN' || role === 'ROLE_ADMIN');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUserContext, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

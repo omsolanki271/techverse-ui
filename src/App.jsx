@@ -29,6 +29,7 @@ import DashboardArticles from './pages/dashboard/DashboardArticles';
 import Editor from './pages/dashboard/Editor';
 import MyMedia from './pages/dashboard/MyMedia';
 import DashboardCategories from './pages/dashboard/DashboardCategories';
+import Profile from './pages/dashboard/Profile';
 
 const DashboardComments = () => <div className="p-8 text-2xl font-bold text-techverse-green">Comments</div>;
 
@@ -40,10 +41,11 @@ import AdminPosts from './pages/admin/AdminPosts';
 import AdminComments from './pages/admin/AdminComments';
 import AdminMedia from './pages/admin/AdminMedia';
 
+import AuthorProfile from './pages/public/AuthorProfile';
+
 // Placeholders for Public
 const CategoryPage = () => <div className="pt-32 text-center text-4xl font-black">Category Page</div>;
 const SearchPage = () => <div className="pt-32 text-center text-4xl font-black">Search Page</div>;
-const AuthorProfile = () => <div className="pt-32 text-center text-4xl font-black">Author Profile</div>;
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,7 @@ function App() {
               <Route path="article/:id" element={<ArticleDetails />} />
               <Route path="category/:categoryId" element={<CategoryPage />} />
               <Route path="search" element={<Explore />} />
-              <Route path="author/:username" element={<AuthorProfile />} />
+              <Route path="author/:userId" element={<AuthorProfile />} />
 
               {/* Standalone Auth Routes embedded in MainLayout to show Navbar, or you can keep them out */}
               <Route path="auth/login" element={<Login />} />
@@ -87,9 +89,10 @@ function App() {
               <Route path="articles/:id/edit" element={<Editor />} />
               <Route path="media" element={<MyMedia />} />
               <Route path="comments" element={<DashboardComments />} />
+              <Route path="profile" element={<Profile />} />
             </Route>
-            {/* Profile redirects to dashboard overview for now */}
-            <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+            {/* Profile route redirect to dashboard profile */}
+            <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
 
             {/* Open Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
