@@ -41,7 +41,6 @@ const DashboardLayout = () => {
   const primaryNavItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { to: '/dashboard/articles', icon: BookOpen, label: 'My Posts' },
-    { to: '/dashboard/categories', icon: FolderTree, label: 'Categories' },
     { to: '/dashboard/media', icon: ImageIcon, label: 'My Media' },
   ];
 

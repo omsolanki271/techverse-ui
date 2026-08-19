@@ -27,32 +27,33 @@ const Explore = () => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        let res;
-        const size = 9; // Number of posts per page
-        if (searchQuery) {
-          res = await postService.searchPosts(searchQuery, { pageNumber: page, pageSize: size });
-        } else {
-          // Find category ID if activeCategory !== 'All'
-          const cat = categories.find(c => c.categoryTitle === activeCategory);
-          // If the backend has a /posts/category endpoint or supports category filtering via params
-          // For standard generic API we assume standard get posts handles it, or adapt
-          // The prompt mentions /api/categories/{categoryId}/posts (standard Spring Boot mapping)
-          // We'll just fetch all and let backend paginate if no specific category endpoint exists in our service, 
-          // wait we need to add getPostsByCategory to postService. Let's assume params work for now or add it.
-          // For exact match:
-          res = await postService.getAllPosts({ pageNumber: page, pageSize: size, sortBy: 'addedDate', sortDirection: 'desc' });
-          // If we had getPostsByCategory, we'd use it here. We'll filter client side if the backend doesn't support it directly in getAllPosts,
-          // But pagination requires backend filtering. I'll mock the filter param if backend supports it.
-        }
+        let content = [];
+        let total = 1;
+        const size = 9;
         
-        // Very basic mock of category filtering if backend doesn't support generic filtering in getAllPosts
-        let content = res.content || [];
-        if (!searchQuery && activeCategory !== 'All') {
-          content = content.filter(post => post.category && post.category.categoryTitle === activeCategory);
+        const cat = activeCategory !== 'All' ? categories.find(c => c.categoryTitle === activeCategory) : null;
+        const categoryId = cat ? cat.categoryId : null;
+
+        if (searchQuery) {
+          // Use search endpoint which handles both keyword and categoryId
+          const params = categoryId ? { categoryId } : {};
+          const res = await postService.searchPosts(searchQuery, params);
+          content = Array.isArray(res) ? res : (res.content || []);
+          total = 1; // Search endpoint is not paginated currently
+        } else if (categoryId) {
+          // Use paginated category endpoint
+          const res = await postService.getPostsByCategory(categoryId, { pageNumber: page, pageSize: size, sortBy: 'addedDate', sortDirection: 'desc' });
+          content = res.content || [];
+          total = res.totalPages || 1;
+        } else {
+          // Get all posts paginated
+          const res = await postService.getAllPosts({ pageNumber: page, pageSize: size, sortBy: 'addedDate', sortDirection: 'desc' });
+          content = res.content || [];
+          total = res.totalPages || 1;
         }
 
         setArticles(content);
-        setTotalPages(res.totalPages || 1);
+        setTotalPages(total);
       } catch (err) {
         console.error('Failed to fetch posts', err);
       } finally {

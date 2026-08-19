@@ -71,7 +71,7 @@ function App() {
               <Route path="explore" element={<Explore />} />
               <Route path="article/:id" element={<ArticleDetails />} />
               <Route path="category/:categoryId" element={<CategoryPage />} />
-              <Route path="search" element={<SearchPage />} />
+              <Route path="search" element={<Explore />} />
               <Route path="author/:username" element={<AuthorProfile />} />
 
               {/* Standalone Auth Routes embedded in MainLayout to show Navbar, or you can keep them out */}
@@ -86,7 +86,6 @@ function App() {
               <Route path="articles/new" element={<Editor />} />
               <Route path="articles/:id/edit" element={<Editor />} />
               <Route path="media" element={<MyMedia />} />
-              <Route path="categories" element={<DashboardCategories />} />
               <Route path="comments" element={<DashboardComments />} />
             </Route>
             {/* Profile redirects to dashboard overview for now */}
