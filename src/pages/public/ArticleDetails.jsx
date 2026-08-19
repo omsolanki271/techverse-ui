@@ -223,33 +223,44 @@ const ArticleDetails = () => {
 
           <div className="space-y-8">
             {comments.length > 0 ? (
-              comments.map(comment => (
-                <div key={comment.id || comment.commentId} className="flex space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-techverse-green text-techverse-eggshell flex items-center justify-center font-bold text-sm shrink-0">
-                    {(comment.user?.name || 'A').charAt(0)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="bg-white/60 border border-techverse-green/10 rounded-sm p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-sm text-techverse-green">{comment.user?.name || 'Anonymous'}</span>
-                        
-                        {(isAdmin() || (user && user.username === comment.user?.username)) && (
-                          <button 
-                            onClick={() => handleDeleteComment(comment.id || comment.commentId)}
-                            className="text-red-400 hover:text-red-600 transition-colors"
-                            title="Delete Comment"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+              comments.map(comment => {
+                const commentUserId = comment.user?.id || comment.userId;
+                const currentUserId = user?.id || user?.userId;
+                const isCommentOwner = Boolean(
+                  user && (
+                    (currentUserId && commentUserId && Number(currentUserId) === Number(commentUserId)) ||
+                    (user.email && comment.user?.email && user.email === comment.user?.email)
+                  )
+                );
+
+                return (
+                  <div key={comment.id || comment.commentId} className="flex space-x-4">
+                    <div className="w-10 h-10 rounded-full bg-techverse-green text-techverse-eggshell flex items-center justify-center font-bold text-sm shrink-0">
+                      {(comment.user?.name || 'A').charAt(0)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="bg-white/60 border border-techverse-green/10 rounded-sm p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-bold text-sm text-techverse-green">{comment.user?.name || 'Anonymous'}</span>
+                          
+                          {(isAdmin() || isCommentOwner) && (
+                            <button 
+                              onClick={() => handleDeleteComment(comment.id || comment.commentId)}
+                              className="text-red-400 hover:text-red-600 transition-colors"
+                              title="Delete Comment"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-techverse-green text-sm leading-relaxed whitespace-pre-wrap">
+                          {comment.content}
+                        </p>
                       </div>
-                      <p className="text-techverse-green text-sm leading-relaxed whitespace-pre-wrap">
-                        {comment.content}
-                      </p>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-center opacity-60 text-techverse-green py-8">No responses yet. Be the first!</p>
             )}

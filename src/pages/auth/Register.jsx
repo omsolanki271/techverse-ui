@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Phone, MapPin, Loader2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import authService from '../../services/authService';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', mobileNumber: '', address: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.username || !formData.email || !formData.password) {
+    if (!formData.name || !formData.mobileNumber || !formData.address || !formData.email || !formData.password) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -76,7 +76,7 @@ const Register = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-techverse-green">
-                Full Name
+                User Name
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -96,22 +96,43 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-techverse-green">
-                Username
+              <label htmlFor="mobileNumber" className="block text-sm font-medium text-techverse-green">
+                Mobile Number
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <Phone className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
+                  id="mobileNumber"
+                  name="mobileNumber"
+                  type="tel"
                   required
-                  value={formData.username}
+                  value={formData.mobileNumber}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-techverse-olive focus:border-techverse-olive sm:text-sm bg-techverse-eggshell/20 text-techverse-green"
-                  placeholder="johndoe"
+                  placeholder="9876543210"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-techverse-green">
+                Address
+              </label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="address"
+                  name="address"
+                  type="text"
+                  required
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-techverse-olive focus:border-techverse-olive sm:text-sm bg-techverse-eggshell/20 text-techverse-green"
+                  placeholder="New York, USA"
                 />
               </div>
             </div>
