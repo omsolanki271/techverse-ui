@@ -302,7 +302,7 @@ const LandingPage = () => {
               {categories.map((category) => (
                 <motion.div variants={itemVariants} key={category.categoryId}>
                   <Link
-                    to={`/category/${category.categoryId}`}
+                    to={`/explore?category=${encodeURIComponent(category.categoryTitle)}`}
                     className="inline-block px-6 py-3 bg-techverse-eggshell border border-techverse-green/20 rounded-sm font-medium hover:bg-techverse-green hover:text-techverse-eggshell transition-all shadow-sm"
                   >
                     {category.categoryTitle}

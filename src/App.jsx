@@ -73,7 +73,7 @@ function App() {
               <Route index element={<LandingPage />} />
               <Route path="explore" element={<Explore />} />
               <Route path="article/:id" element={<ArticleDetails />} />
-              <Route path="category/:categoryId" element={<CategoryPage />} />
+              <Route path="category/:categoryId" element={<Explore />} />
               <Route path="search" element={<Explore />} />
               <Route path="author/:userId" element={<AuthorProfile />} />
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import postService from '../../services/postService';
 import categoryService from '../../services/categoryService';
 
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const routeParams = useParams();
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   
@@ -21,6 +22,41 @@ const Explore = () => {
   useEffect(() => {
     categoryService.getAllCategories().then(setCategories).catch(console.error);
   }, []);
+
+  // Synchronize category from URL search params or route params when categories load or URL changes
+  useEffect(() => {
+    const urlCategory = searchParams.get('category');
+    const urlCategoryId = searchParams.get('categoryId') || routeParams.categoryId;
+
+    if (categories.length > 0) {
+      if (urlCategory) {
+        const found = categories.find(c => c.categoryTitle.toLowerCase() === urlCategory.toLowerCase());
+        if (found) {
+          setActiveCategory(found.categoryTitle);
+        }
+      } else if (urlCategoryId) {
+        const targetId = Number(urlCategoryId);
+        const found = categories.find(c => c.categoryId === targetId || String(c.categoryId) === String(targetId));
+        if (found) {
+          setActiveCategory(found.categoryTitle);
+        }
+      }
+    }
+  }, [categories, searchParams, routeParams.categoryId]);
+
+  const handleCategorySelect = (categoryTitle) => {
+    setActiveCategory(categoryTitle);
+    setPage(0);
+    const newParams = new URLSearchParams(searchParams);
+    if (categoryTitle === 'All') {
+      newParams.delete('category');
+      newParams.delete('categoryId');
+    } else {
+      newParams.set('category', categoryTitle);
+      newParams.delete('categoryId');
+    }
+    setSearchParams(newParams);
+  };
 
   // Fetch Posts based on filters
   useEffect(() => {
@@ -100,7 +136,7 @@ const Explore = () => {
             {['All', ...categories.map(c => c.categoryTitle)].map(category => (
               <button
                 key={category}
-                onClick={() => { setActiveCategory(category); setPage(0); }}
+                onClick={() => handleCategorySelect(category)}
                 className={`px-4 py-2 rounded-sm text-sm font-bold whitespace-nowrap transition-colors ${
                   activeCategory === category 
                     ? 'bg-techverse-green text-techverse-eggshell' 

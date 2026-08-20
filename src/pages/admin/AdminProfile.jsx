@@ -11,6 +11,7 @@ import userService from '../../services/userService';
 import postService from '../../services/postService';
 import commentService from '../../services/commentService';
 import categoryService from '../../services/categoryService';
+import authService from '../../services/authService';
 
 const GithubIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -53,6 +54,7 @@ const AdminProfile = () => {
     githubUrl: '',
     linkedinUrl: '',
     instaUrl: '',
+    currentPassword: '',
     password: '',
     confirmPassword: ''
   });
@@ -90,6 +92,7 @@ const AdminProfile = () => {
           githubUrl: data.githubUrl || '',
           linkedinUrl: data.linkedinUrl || '',
           instaUrl: data.instaUrl || '',
+          currentPassword: '',
           password: '',
           confirmPassword: ''
         }));
@@ -146,19 +149,40 @@ const AdminProfile = () => {
       return;
     }
 
-    if (activeTab === 'security' && formData.password) {
+    const isPasswordChange = formData.currentPassword || formData.password || formData.confirmPassword || activeTab === 'security';
+
+    if (isPasswordChange && (formData.currentPassword || formData.password || formData.confirmPassword)) {
+      if (!formData.currentPassword) {
+        toast.error('Please enter your existing password to verify');
+        return;
+      }
+      if (!formData.password) {
+        toast.error('Please enter a new password');
+        return;
+      }
       if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
+        toast.error('New passwords do not match');
         return;
       }
       if (formData.password.length < 4) {
-        toast.error('Password must be at least 4 characters long');
+        toast.error('New password must be at least 4 characters long');
         return;
       }
     }
 
     try {
       setSaving(true);
+
+      // Verify existing password if password change is requested
+      if (formData.password && formData.currentPassword) {
+        try {
+          await authService.login(formData.email || user?.email, formData.currentPassword);
+        } catch (verifyErr) {
+          toast.error('Existing password is invalid. Password update rejected.');
+          setSaving(false);
+          return;
+        }
+      }
 
       const updatePayload = {
         name: formData.name,
@@ -182,7 +206,7 @@ const AdminProfile = () => {
 
       toast.success('Admin Profile updated successfully!');
 
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setFormData(prev => ({ ...prev, currentPassword: '', password: '', confirmPassword: '' }));
     } catch (error) {
       console.error('Error updating admin profile:', error);
       const errorMsg = error.response?.data?.message
@@ -499,50 +523,70 @@ const AdminProfile = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-black text-techverse-green mb-1">Admin Account Security</h3>
-                  <p className="text-xs text-techverse-green/70">Update your administrator password to protect platform access.</p>
+                  <p className="text-xs text-techverse-green/70">Verify your existing administrator password and set a new password to protect platform access.</p>
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start space-x-3 text-amber-900 text-xs font-medium max-w-2xl">
                   <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    Leave these password fields blank if you do not wish to modify your current administrator password.
+                    Enter your existing password to verify administrative authority before setting a new password.
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
-                  {/* New Password */}
+                <div className="space-y-6 max-w-2xl">
+                  {/* Existing Password */}
                   <div>
                     <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
-                      New Admin Password
+                      Existing / Current Password *
                     </label>
                     <div className="relative">
                       <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
                       <input
                         type="password"
-                        name="password"
-                        value={formData.password}
+                        name="currentPassword"
+                        value={formData.currentPassword}
                         onChange={handleChange}
-                        placeholder="••••••••"
+                        placeholder="Enter current admin password"
                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* Confirm Password */}
-                  <div>
-                    <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
-                      Confirm New Password
-                    </label>
-                    <div className="relative">
-                      <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* New Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
+                        New Admin Password
+                      </label>
+                      <div className="relative">
+                        <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
