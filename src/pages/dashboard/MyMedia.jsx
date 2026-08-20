@@ -160,7 +160,7 @@ const MyMedia = () => {
                 </div>
               </div>
               <div className="p-3">
-                <p className="text-sm font-medium text-techverse-green truncate" title={media.fileName}>{media.fileName}</p>
+                {/* <p className="text-sm font-medium text-techverse-green truncate" title={media.fileName}>{media.fileName}</p> */}
                 <div className="flex justify-between items-center mt-1">
                   <p className="text-xs text-techverse-green/60 uppercase">{media.fileType || 'IMAGE'}</p>
                   <p className="text-xs text-techverse-green/60">{new Date(media.uploadedDate || Date.now()).toLocaleDateString()}</p>
