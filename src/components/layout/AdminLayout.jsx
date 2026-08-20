@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, BookOpen, Users, FolderTree,
-  MessageSquare, Settings, LogOut, Image as ImageIcon
+  MessageSquare, Settings, LogOut, Image as ImageIcon, User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -40,6 +40,7 @@ const AdminLayout = () => {
     { to: '/admin/posts', icon: BookOpen, label: 'Posts' },
     { to: '/admin/comments', icon: MessageSquare, label: 'Comments' },
     { to: '/admin/media', icon: ImageIcon, label: 'Media' },
+    { to: '/admin/profile', icon: User, label: 'Profile' },
   ];
 
   return (
@@ -69,14 +70,15 @@ const AdminLayout = () => {
         </nav>
 
         <div className="p-4 border-t border-techverse-olive/20">
-          <div className="flex items-center space-x-3 mb-4 px-2">
+          <Link to="/admin/profile" className="flex items-center space-x-3 mb-4 px-2 py-1.5 rounded-lg hover:bg-techverse-olive/10 transition-colors group">
             <div className="w-8 h-8 rounded-full bg-techverse-olive text-techverse-green flex items-center justify-center font-bold text-sm">
               {user?.name?.charAt(0) || user?.username?.charAt(0) || 'A'}
             </div>
-            <div>
-              <div className="text-sm font-bold leading-none">{user?.name || user?.username || 'Admin'}</div>
+            <div className="overflow-hidden">
+              <div className="text-sm font-bold leading-none truncate group-hover:text-techverse-olive transition-colors">{user?.name || user?.username || 'Admin'}</div>
+              <div className="text-xs text-techverse-eggshell/60 truncate mt-0.5">Admin Profile</div>
             </div>
-          </div>
+          </Link>
           <button onClick={handleLogout} className="flex w-full items-center space-x-3 px-4 py-2 text-red-400 hover:bg-red-400/10 rounded-md transition-colors">
             <LogOut size={20} />
             <span>Logout</span>

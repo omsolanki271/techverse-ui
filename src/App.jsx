@@ -40,6 +40,7 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminPosts from './pages/admin/AdminPosts';
 import AdminComments from './pages/admin/AdminComments';
 import AdminMedia from './pages/admin/AdminMedia';
+import AdminProfile from './pages/admin/AdminProfile';
 
 import AuthorProfile from './pages/public/AuthorProfile';
 
@@ -102,6 +103,7 @@ function App() {
               <Route path="posts" element={<AdminPosts />} />
               <Route path="comments" element={<AdminComments />} />
               <Route path="media" element={<AdminMedia />} />
+              <Route path="profile" element={<AdminProfile />} />
             </Route>
 
             {/* 404 */}
