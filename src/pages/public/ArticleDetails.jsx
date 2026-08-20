@@ -145,7 +145,7 @@ const ArticleDetails = () => {
               </div>
             </div>
             
-            {(isAdmin() || (user && user.username === article.user?.username)) && (
+            {(isAdmin() || (user && article.user && (user.id === article.user.id || user.userId === article.user.id || user.email === article.user.email))) && (
               <div className="flex items-center space-x-2 md:space-x-4">
                 <Link to={`/dashboard/articles/${article.postId}/edit`} className="p-2 text-techverse-olive hover:bg-techverse-green/5 rounded-full transition-colors" title="Edit Post">
                   <Edit3 size={20} />
