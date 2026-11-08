@@ -5,6 +5,7 @@ import mediaService from '../../services/mediaService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../context/ConfirmContext';
+import AuthMediaImage from '../../components/common/AuthMediaImage';
 
 const MyMedia = () => {
   const { user, isAdmin } = useAuth();
@@ -143,11 +144,10 @@ const MyMedia = () => {
               className="bg-white rounded-xl overflow-hidden border border-techverse-green/10 shadow-sm group relative"
             >
               <div className="aspect-square bg-techverse-eggshell relative">
-                <img 
-                  src={mediaService.getMediaUrl(media.mediaId) || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400'} 
+                <AuthMediaImage 
+                  mediaId={media.mediaId} 
                   alt={media.fileName} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400'; }}
                 />
                 <div className="absolute inset-0 bg-techverse-green/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <button 

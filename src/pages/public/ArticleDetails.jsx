@@ -58,18 +58,13 @@ const ArticleDetails = () => {
 
     setSubmittingComment(true);
     try {
-      // Assuming userId is available in user object
-      const userId = user.id || user.userId || user.id; // Adjust based on actual backend user ID field
-      // If user ID is not in context but JWT is used, backend might not need userId in path. 
-      // But prompt says: POST /api/comments/user/{userId}/post/{postId}
-      // Let's assume user.userId exists. If it doesn't, we'd need to fetch user profile on login and store it.
-      // We will assume user.userId for now.
-      const newComment = await commentService.createComment(user.userId || user.id, id, { content: commentText });
+      const newComment = await commentService.createComment(id, { content: commentText.trim() });
       setComments([newComment, ...comments]);
       setCommentText('');
       toast.success('Comment added successfully');
     } catch (err) {
-      toast.error('Failed to post comment.');
+      const msg = err.response?.data?.message || (err.response?.data && typeof err.response.data === 'object' ? Object.values(err.response.data)[0] : null) || 'Failed to post comment.';
+      toast.error(msg);
     } finally {
       setSubmittingComment(false);
     }

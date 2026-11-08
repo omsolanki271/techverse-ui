@@ -30,13 +30,18 @@ const Login = () => {
 
     setLoading(true);
     try {
-      // Depending on actual backend API, it might expect 'usernameOrEmail' or 'username' or 'email'.
-      // We send 'usernameOrEmail' and 'password' as per typical Spring Boot setups, or adapt if known.
       const res = await authService.login(formData.usernameOrEmail, formData.password);
-      // Assuming res contains accessToken and maybe user object, adjust as per backend shape
-      login(res.user || res, res.accessToken || res.token);
+      const userData = res.user || res;
+      const authToken = res.token || res.accessToken;
+      login(userData, authToken);
       toast.success('Logged in successfully');
-      navigate(from, { replace: true });
+
+      if (from === '/') {
+        const isAdminUser = userData?.roles?.some(r => r.name === 'ROLE_ADMIN' || r === 'ROLE_ADMIN');
+        navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to login. Please check credentials.');
     } finally {
@@ -72,7 +77,7 @@ const Login = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="usernameOrEmail" className="block text-sm font-medium text-techverse-green">
-                Email address or Username
+                Email address
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -81,7 +86,7 @@ const Login = () => {
                 <input
                   id="usernameOrEmail"
                   name="usernameOrEmail"
-                  type="text"
+                  type="email"
                   required
                   value={formData.usernameOrEmail}
                   onChange={handleChange}
@@ -122,26 +127,6 @@ const Login = () => {
                     )}
                   </button>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                {/* <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-techverse-olive focus:ring-techverse-olive border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-techverse-green">
-                  Remember me
-                </label> */}
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-techverse-olive hover:text-techverse-green transition-colors">
-                  Forgot your password?
-                </a>
               </div>
             </div>
 

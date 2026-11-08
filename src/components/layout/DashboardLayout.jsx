@@ -29,7 +29,7 @@ const NavLink = ({ to, icon: Icon, label, active }) => (
 const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const toast = useToast();
 
   const handleLogout = () => {
@@ -60,6 +60,11 @@ const DashboardLayout = () => {
 
         {/* User & Actions */}
         <div className="flex items-center space-x-3 sm:space-x-6 pointer-events-auto bg-white/70 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-techverse-green/10 shadow-sm">
+          {isAdmin() && (
+            <Link to="/admin" className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider bg-techverse-olive/30 hover:bg-techverse-olive text-techverse-green rounded-full transition-colors">
+              Admin
+            </Link>
+          )}
           <Link to="/search" className="text-techverse-green opacity-70 hover:opacity-100 transition-opacity">
             <Search size={18} />
           </Link>

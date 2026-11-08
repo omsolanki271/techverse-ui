@@ -69,18 +69,24 @@ const Navbar = () => {
             
             {user ? (
               <div className="flex items-center space-x-4 ml-2 pl-4">
-                <Link to={isAdmin() ? "/admin" : "/dashboard"} className="flex items-center space-x-2 group">
+                {isAdmin() && (
+                  <Link to="/admin" className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-techverse-olive text-techverse-green hover:opacity-90 transition-opacity">
+                    Admin
+                  </Link>
+                )}
+                <Link to="/dashboard" className="flex items-center space-x-2 group">
                   <div className="w-8 h-8 rounded-full border border-techverse-olive/50 group-hover:border-techverse-olive transition-colors bg-techverse-olive text-techverse-green flex items-center justify-center font-bold text-sm">
                     {user?.name?.charAt(0) || user?.username?.charAt(0) || 'U'}
                   </div>
                   <span className={`text-sm font-medium hidden lg:block transition-colors ${isScrolled ? 'text-techverse-eggshell' : 'text-techverse-green'}`}>
-                    {user?.name || user?.username || 'Profile'}
+                    {user?.name || user?.username || 'Dashboard'}
                   </span>
                 </Link>
                 <div className="h-6 w-px bg-techverse-olive/30"></div>
                 <button 
                   onClick={handleLogout}
                   className={`flex items-center space-x-2 text-sm font-medium transition-colors hover:text-red-400 ${isScrolled ? 'text-techverse-eggshell' : 'text-techverse-green'}`}
+                  title="Logout"
                 >
                   <LogOut size={18} />
                 </button>

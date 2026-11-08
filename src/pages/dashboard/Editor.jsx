@@ -7,6 +7,7 @@ import categoryService from '../../services/categoryService';
 import mediaService from '../../services/mediaService';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import AuthMediaImage from '../../components/common/AuthMediaImage';
 
 const Editor = () => {
   const { id } = useParams();
@@ -124,9 +125,14 @@ const Editor = () => {
     }
   };
 
-  const selectMediaItem = (media) => {
+  const selectMediaItem = async (media) => {
     setSelectedMediaId(media.mediaId);
-    setMediaPreview(mediaService.getMediaUrl(media.mediaId));
+    try {
+      const blobUrl = await mediaService.fetchMediaBlobUrl(media.mediaId);
+      setMediaPreview(blobUrl);
+    } catch {
+      setMediaPreview(null);
+    }
     setShowMediaModal(false);
   };
 
@@ -290,8 +296,8 @@ const Editor = () => {
                       onClick={() => selectMediaItem(item)}
                       className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-techverse-olive cursor-pointer group relative bg-white shadow-sm"
                     >
-                      <img 
-                        src={mediaService.getMediaUrl(item.mediaId)} 
+                      <AuthMediaImage 
+                        mediaId={item.mediaId} 
                         alt={item.fileName} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />

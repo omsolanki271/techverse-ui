@@ -66,6 +66,20 @@ const AdminLayout = () => {
               active={location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to))}
             />
           ))}
+          <div className="pt-4 mt-4 border-t border-techverse-olive/20 space-y-1">
+            <Link 
+              to="/dashboard" 
+              className="flex items-center space-x-3 px-4 py-2.5 rounded-md text-sm text-techverse-eggshell/70 hover:bg-techverse-olive/20 hover:text-techverse-eggshell transition-colors"
+            >
+              <span>User Dashboard</span>
+            </Link>
+            <Link 
+              to="/" 
+              className="flex items-center space-x-3 px-4 py-2.5 rounded-md text-sm text-techverse-eggshell/70 hover:bg-techverse-olive/20 hover:text-techverse-eggshell transition-colors"
+            >
+              <span>View Public Site</span>
+            </Link>
+          </div>
         </nav>
 
         <div className="p-4 border-t border-techverse-olive/20">

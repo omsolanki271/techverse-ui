@@ -53,17 +53,19 @@ const Overview = () => {
       try {
         setLoading(true);
         
-        // Fetch all needed data
-        const userId = user?.userId || user?.id;
-        
-        // Parallel requests
-        const [postsRes, categories, comments] = await Promise.all([
-          isAdmin() ? postService.getAllPosts({ pageSize: 1000 }) : postService.getPostsByUser(userId, { pageSize: 1000 }),
+        const userId = user?.id || user?.userId;
+        const admin = isAdmin();
+
+        // Safe requests: only call admin endpoints if the user actually has ADMIN role
+        const [postsRes, categories, commentsRes] = await Promise.all([
+          admin ? postService.getAllPosts({ pageSize: 1000 }) : postService.getPostsByUser(userId, { pageSize: 1000 }),
           categoryService.getAllCategories(),
-          commentService.getAllComments()
+          admin ? commentService.getAllComments().catch(() => []) : Promise.resolve([])
         ]);
         
-        const posts = postsRes.content || [];
+        const posts = postsRes?.content || [];
+        const cats = categories || [];
+        const comments = commentsRes || [];
         
         // Process Category Data
         const catCountMap = {};
@@ -97,21 +99,17 @@ const Overview = () => {
           posts: dateMap[key].posts,
           views: dateMap[key].views
         })).slice(-10); // Last 10 active days
-        
-        // Filter comments for non-admin to only show comments on their posts
-        let userComments = comments || [];
-        if (!isAdmin()) {
-            const userPostIds = new Set(posts.map(p => p.postId));
-            userComments = userComments.filter(c => userPostIds.has(c.postId));
-        }
+
+        const avgViews = posts.length > 0 ? Math.round(viewsSum / posts.length) : 0;
 
         setStats({
-          totalPosts: posts.length,
-          totalComments: userComments.length,
-          totalCategories: categories.length,
+          totalPosts: postsRes?.totalElements ?? posts.length,
+          totalComments: comments.length,
+          totalCategories: cats.length,
           totalViews: viewsSum,
-          categoryData: categoryData.length > 0 ? categoryData : [{name: 'None', value: 1}],
-          activityData: activityData.length > 0 ? activityData : [{name: 'Today', posts: 0, views: 0}]
+          avgViews,
+          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'Uncategorized', value: posts.length || 1 }],
+          activityData: activityData.length > 0 ? activityData : [{ name: 'Today', posts: 0, views: 0 }]
         });
         
       } catch (err) {
@@ -124,7 +122,7 @@ const Overview = () => {
     if (user) {
       fetchAnalytics();
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   if (loading) {
     return (
@@ -145,10 +143,14 @@ const Overview = () => {
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Total Views" value={stats.totalViews} icon={Eye} trend="Active" delay={0.1} />
-        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Active" delay={0.2} />
-        <MetricCard title="Total Comments" value={stats.totalComments} icon={MessageSquare} trend="Active" delay={0.3} />
-        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="System" delay={0.4} />
+        <MetricCard title="Total Views" value={stats.totalViews} icon={Eye} trend="Real views" delay={0.1} />
+        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Published" delay={0.2} />
+        {isAdmin() ? (
+          <MetricCard title="Platform Comments" value={stats.totalComments} icon={MessageSquare} trend="Total" delay={0.3} />
+        ) : (
+          <MetricCard title="Avg Views / Post" value={stats.avgViews || 0} icon={TrendingUp} trend="Engagement" delay={0.3} />
+        )}
+        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="Available" delay={0.4} />
       </div>
 
       {/* Main Charts */}

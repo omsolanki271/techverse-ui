@@ -16,8 +16,7 @@ import InitialLoader from './components/common/InitialLoader';
 import LandingPage from './pages/public/LandingPage';
 import Explore from './pages/public/Explore';
 import ArticleDetails from './pages/public/ArticleDetails';
-// const CategoryPage = () => <div className="pt-32 text-center text-4xl font-black">Category Page</div>;
-// const SearchPage = () => <div className="pt-32 text-center text-4xl font-black">Search Page</div>;
+import AuthorProfile from './pages/public/AuthorProfile';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -28,10 +27,7 @@ import Overview from './pages/dashboard/Overview';
 import DashboardArticles from './pages/dashboard/DashboardArticles';
 import Editor from './pages/dashboard/Editor';
 import MyMedia from './pages/dashboard/MyMedia';
-import DashboardCategories from './pages/dashboard/DashboardCategories';
 import Profile from './pages/dashboard/Profile';
-
-const DashboardComments = () => <div className="p-8 text-2xl font-bold text-techverse-green">Comments</div>;
 
 // Admin Pages
 import AdminOverview from './pages/admin/AdminOverview';
@@ -40,12 +36,6 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminPosts from './pages/admin/AdminPosts';
 import AdminComments from './pages/admin/AdminComments';
 import AdminMedia from './pages/admin/AdminMedia';
-
-import AuthorProfile from './pages/public/AuthorProfile';
-
-// Placeholders for Public
-const CategoryPage = () => <div className="pt-32 text-center text-4xl font-black">Category Page</div>;
-const SearchPage = () => <div className="pt-32 text-center text-4xl font-black">Search Page</div>;
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -72,36 +62,40 @@ function App() {
               <Route index element={<LandingPage />} />
               <Route path="explore" element={<Explore />} />
               <Route path="article/:id" element={<ArticleDetails />} />
-              <Route path="category/:categoryId" element={<CategoryPage />} />
+              <Route path="category/:categoryId" element={<Explore />} />
               <Route path="search" element={<Explore />} />
               <Route path="author/:userId" element={<AuthorProfile />} />
 
-              {/* Standalone Auth Routes embedded in MainLayout to show Navbar, or you can keep them out */}
+              {/* Standalone Auth Routes embedded in MainLayout */}
               <Route path="auth/login" element={<Login />} />
               <Route path="auth/register" element={<Register />} />
             </Route>
 
-            {/* Open User Dashboard Routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Overview />} />
-              <Route path="articles" element={<DashboardArticles />} />
-              <Route path="articles/new" element={<Editor />} />
-              <Route path="articles/:id/edit" element={<Editor />} />
-              <Route path="media" element={<MyMedia />} />
-              <Route path="comments" element={<DashboardComments />} />
-              <Route path="profile" element={<Profile />} />
+            {/* Protected User Dashboard Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Overview />} />
+                <Route path="articles" element={<DashboardArticles />} />
+                <Route path="articles/new" element={<Editor />} />
+                <Route path="articles/:id/edit" element={<Editor />} />
+                <Route path="media" element={<MyMedia />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
             </Route>
+
             {/* Profile route redirect to dashboard profile */}
             <Route path="/profile" element={<Navigate to="/dashboard/profile" replace />} />
 
-            {/* Open Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminOverview />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="posts" element={<AdminPosts />} />
-              <Route path="comments" element={<AdminComments />} />
-              <Route path="media" element={<AdminMedia />} />
+            {/* Protected Admin Routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminOverview />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="categories" element={<AdminCategories />} />
+                <Route path="posts" element={<AdminPosts />} />
+                <Route path="comments" element={<AdminComments />} />
+                <Route path="media" element={<AdminMedia />} />
+              </Route>
             </Route>
 
             {/* 404 */}

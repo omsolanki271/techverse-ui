@@ -1,8 +1,14 @@
 import api from './api';
 
 const commentService = {
-  createComment: async (userId, postId, commentData) => {
-    // Note: API maps to POST /api/comments/post/{postId}
+  createComment: async (arg1, arg2, arg3) => {
+    // Supports createComment(postId, commentData) and createComment(userId, postId, commentData)
+    let postId = arg1;
+    let commentData = arg2;
+    if (arg3 !== undefined) {
+      postId = arg2;
+      commentData = arg3;
+    }
     const response = await api.post(`/comments/post/${postId}`, commentData);
     return response.data;
   },

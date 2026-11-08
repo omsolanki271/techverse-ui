@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
@@ -13,7 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 const COLORS = ['#133215', '#92B775', '#5a8241', '#a8c691', '#405B36', '#BBD3A5'];
 
 const MetricCard = ({ title, value, icon: Icon, trend, delay }) => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.4 }}
@@ -37,7 +37,7 @@ const MetricCard = ({ title, value, icon: Icon, trend, delay }) => (
 
 const DashboardAnalytics = () => {
   const { user, isAdmin } = useAuth();
-  
+
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalPosts: 0,
@@ -51,19 +51,19 @@ const DashboardAnalytics = () => {
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch all needed data
         const userId = user?.userId || user?.id;
-        
+
         // Parallel requests
         const [postsRes, categories, comments] = await Promise.all([
           isAdmin() ? postService.getAllPosts({ pageSize: 1000 }) : postService.getPostsByUser(userId, { pageSize: 1000 }),
           categoryService.getAllCategories(),
           commentService.getAllComments()
         ]);
-        
+
         const posts = postsRes.content || [];
-        
+
         // Process Category Data
         const catCountMap = {};
         posts.forEach(post => {
@@ -71,7 +71,7 @@ const DashboardAnalytics = () => {
             catCountMap[post.category.categoryTitle] = (catCountMap[post.category.categoryTitle] || 0) + 1;
           }
         });
-        
+
         const categoryData = Object.keys(catCountMap).map(key => ({
           name: key,
           value: catCountMap[key]
@@ -85,27 +85,27 @@ const DashboardAnalytics = () => {
             dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
           }
         });
-        
+
         const activityData = Object.keys(dateMap).map(key => ({
           name: key,
           posts: dateMap[key]
         })).slice(-10); // Last 10 active days
-        
+
         // Filter comments for non-admin to only show comments on their posts
         let userComments = comments || [];
         if (!isAdmin()) {
-            const userPostIds = new Set(posts.map(p => p.postId));
-            userComments = userComments.filter(c => userPostIds.has(c.postId));
+          const userPostIds = new Set(posts.map(p => p.postId));
+          userComments = userComments.filter(c => userPostIds.has(c.postId));
         }
 
         setStats({
           totalPosts: posts.length,
           totalComments: userComments.length,
           totalCategories: categories.length,
-          categoryData: categoryData.length > 0 ? categoryData : [{name: 'None', value: 1}],
-          activityData: activityData.length > 0 ? activityData : [{name: 'Today', posts: 0}]
+          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'None', value: 1 }],
+          activityData: activityData.length > 0 ? activityData : [{ name: 'Today', posts: 0 }]
         });
-        
+
       } catch (err) {
         console.error('Failed to load analytics', err);
       } finally {
@@ -144,9 +144,9 @@ const DashboardAnalytics = () => {
 
       {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Posting Activity Area Chart */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -158,14 +158,14 @@ const DashboardAnalytics = () => {
               <AreaChart data={stats.activityData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorPosts" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#133215" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#133215" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#133215" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#133215" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#133215" strokeOpacity={0.1} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#133215', opacity: 0.6 }} dy={10} />
                 <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#133215', opacity: 0.6 }} dx={-10} />
-                <RechartsTooltip 
+                <RechartsTooltip
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Area type="monotone" dataKey="posts" stroke="#133215" strokeWidth={3} fillOpacity={1} fill="url(#colorPosts)" />
@@ -175,7 +175,7 @@ const DashboardAnalytics = () => {
         </motion.div>
 
         {/* Categories Distribution Pie Chart */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
@@ -199,7 +199,7 @@ const DashboardAnalytics = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <RechartsTooltip 
+                <RechartsTooltip
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   itemStyle={{ color: '#133215', fontWeight: 'bold' }}
                 />

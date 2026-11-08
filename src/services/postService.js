@@ -46,6 +46,17 @@ const postService = {
     return response.data;
   },
 
+  uploadPostImage: async (postId, file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const response = await api.post(`/posts/image/upload/${postId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   getPostImage: (postId) => {
     // Return the URL directly using the base URL
     // We assume VITE_API_BASE_URL is something like "http://localhost:8081/api"

@@ -113,7 +113,9 @@ const LandingPage = () => {
                     <h2 className="text-3xl md:text-4xl font-bold mb-3 group-hover:text-techverse-olive transition-colors leading-tight">
                       {featuredArticle.title}
                     </h2>
-                    <p className="text-sm opacity-80 line-clamp-2 max-w-2xl" dangerouslySetInnerHTML={{ __html: featuredArticle.content.substring(0, 150) + '...' }} />
+                    <p className="text-sm opacity-80 line-clamp-2 max-w-2xl">
+                      {(featuredArticle.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
+                    </p>
                   </div>
                 </div>
               </Link>

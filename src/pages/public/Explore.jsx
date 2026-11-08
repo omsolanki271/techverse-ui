@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Search, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import postService from '../../services/postService';
 import categoryService from '../../services/categoryService';
 
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { categoryId: paramCatId } = useParams();
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   
@@ -19,8 +20,16 @@ const Explore = () => {
 
   // Fetch Categories once
   useEffect(() => {
-    categoryService.getAllCategories().then(setCategories).catch(console.error);
-  }, []);
+    categoryService.getAllCategories().then((cats) => {
+      setCategories(cats || []);
+      if (paramCatId && cats?.length > 0) {
+        const found = cats.find(c => String(c.categoryId) === String(paramCatId));
+        if (found) {
+          setActiveCategory(found.categoryTitle);
+        }
+      }
+    }).catch(console.error);
+  }, [paramCatId]);
 
   // Fetch Posts based on filters
   useEffect(() => {
@@ -157,7 +166,9 @@ const Explore = () => {
                       {article.title}
                     </h3>
                   </Link>
-                  <p className="text-sm opacity-70 mb-6 text-techverse-green line-clamp-3 flex-grow" dangerouslySetInnerHTML={{ __html: article.content.substring(0, 150) + '...' }} />
+                  <p className="text-sm opacity-70 mb-6 text-techverse-green line-clamp-3 flex-grow">
+                    {(article.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
+                  </p>
                   <div className="flex items-center justify-between text-xs font-medium text-techverse-green opacity-60 pt-4 border-t border-techverse-green/10">
                     <span>{new Date(article.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     <span>{article.user?.name || 'Anonymous'}</span>
