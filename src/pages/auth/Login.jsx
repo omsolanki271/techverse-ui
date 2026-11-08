@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import authService from '../../services/authService';
@@ -47,6 +48,37 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      toast.error('Google sign-in did not return a credential.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await authService.googleLogin(credentialResponse.credential);
+      const userData = res.user || res;
+      const authToken = res.token || res.accessToken;
+      login(userData, authToken);
+      toast.success('Signed in with Google successfully');
+
+      if (from === '/') {
+        const isAdminUser = userData?.roles?.some(r => r.name === 'ROLE_ADMIN' || r === 'ROLE_ADMIN');
+        navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error('Google sign-in was cancelled or failed.');
   };
 
   return (
@@ -140,6 +172,27 @@ const Login = () => {
               </button>
             </div>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-white text-gray-500 font-medium">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="outline"
+              size="large"
+              text="continue_with"
+              shape="rectangular"
+              width="100%"
+            />
+          </div>
         </motion.div>
       </div>
     </div>

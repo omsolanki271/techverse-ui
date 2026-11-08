@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
-import { Eye, Users, Clock, ThumbsUp, MessageSquare, TrendingUp, Layers, PenTool } from 'lucide-react';
+import { Eye, Users, Clock, ThumbsUp, MessageSquare, TrendingUp, Layers, PenTool, ArrowUpRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import postService from '../../services/postService';
 import categoryService from '../../services/categoryService';
@@ -12,28 +13,35 @@ import { useAuth } from '../../context/AuthContext';
 
 const COLORS = ['#133215', '#92B775', '#5a8241', '#a8c691', '#405B36', '#BBD3A5'];
 
-const MetricCard = ({ title, value, icon: Icon, trend, delay }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4 }}
-    className="bg-white rounded-xl shadow-sm border border-techverse-green/10 p-6 flex items-center justify-between"
-  >
-    <div>
-      <p className="text-techverse-green/60 font-medium mb-1 text-sm">{title}</p>
-      <h4 className="text-2xl font-black text-techverse-green">{value}</h4>
-      {trend && (
-        <div className="flex items-center mt-2 text-xs font-bold text-techverse-olive">
-          <TrendingUp size={14} className="mr-1" />
-          {trend}
-        </div>
-      )}
-    </div>
-    <div className="w-12 h-12 rounded-full bg-techverse-eggshell/50 flex items-center justify-center text-techverse-green">
-      <Icon size={24} />
-    </div>
-  </motion.div>
-);
+const MetricCard = ({ title, value, icon: Icon, trend, delay, to }) => {
+  const content = (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={to ? { y: -4 } : {}}
+      transition={{ delay, duration: 0.3 }}
+      className={`bg-white rounded-xl shadow-sm border border-techverse-green/10 p-6 flex items-center justify-between transition-all ${
+        to ? 'cursor-pointer hover:border-techverse-olive hover:shadow-md group' : ''
+      }`}
+    >
+      <div>
+        <p className="text-techverse-green/60 font-medium mb-1 text-sm">{title}</p>
+        <h4 className="text-2xl font-black text-techverse-green">{value}</h4>
+        {trend && (
+          <div className="flex items-center mt-2 text-xs font-bold text-techverse-olive group-hover:text-techverse-green transition-colors">
+            <TrendingUp size={14} className="mr-1" />
+            {trend}
+          </div>
+        )}
+      </div>
+      <div className="w-12 h-12 rounded-full bg-techverse-eggshell/50 flex items-center justify-center text-techverse-green group-hover:bg-techverse-olive/20 transition-colors">
+        <Icon size={24} />
+      </div>
+    </motion.div>
+  );
+
+  return to ? <Link to={to} className="block">{content}</Link> : content;
+};
 
 const Overview = () => {
   const { user, isAdmin } = useAuth();
@@ -83,22 +91,31 @@ const Overview = () => {
           value: catCountMap[key]
         })).sort((a, b) => b.value - a.value);
 
-        // Process Activity Data (Posts and Views added over time)
-        const dateMap = {};
+        // Process Activity Data (7-day timeline window)
+        const pastDays = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const rawDate = d.toISOString().split('T')[0];
+          const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          pastDays.push({
+            name: dateStr,
+            rawDate,
+            posts: 0,
+            views: 0
+          });
+        }
+
         posts.forEach(post => {
           if (post.addedDate) {
-            const dateStr = new Date(post.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            if (!dateMap[dateStr]) dateMap[dateStr] = { posts: 0, views: 0 };
-            dateMap[dateStr].posts += 1;
-            dateMap[dateStr].views += (post.views || 0);
+            const rawIso = new Date(post.addedDate).toISOString().split('T')[0];
+            const match = pastDays.find(p => p.rawDate === rawIso);
+            if (match) {
+              match.posts += 1;
+              match.views += (post.views || 0);
+            }
           }
         });
-        
-        const activityData = Object.keys(dateMap).map(key => ({
-          name: key,
-          posts: dateMap[key].posts,
-          views: dateMap[key].views
-        })).slice(-10); // Last 10 active days
 
         const avgViews = posts.length > 0 ? Math.round(viewsSum / posts.length) : 0;
 
@@ -108,8 +125,8 @@ const Overview = () => {
           totalCategories: cats.length,
           totalViews: viewsSum,
           avgViews,
-          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'Uncategorized', value: posts.length || 1 }],
-          activityData: activityData.length > 0 ? activityData : [{ name: 'Today', posts: 0, views: 0 }]
+          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'Uncategorized', value: posts.length || 0 }],
+          activityData: pastDays
         });
         
       } catch (err) {
@@ -141,16 +158,16 @@ const Overview = () => {
         </p>
       </div>
 
-      {/* Top Metrics */}
+      {/* Top Metrics with direct navigation */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Total Views" value={stats.totalViews} icon={Eye} trend="Real views" delay={0.1} />
-        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Published" delay={0.2} />
+        <MetricCard title="Total Views" value={stats.totalViews} icon={Eye} trend="Real views" delay={0.1} to="/dashboard/articles" />
+        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Published" delay={0.2} to={isAdmin() ? "/admin/posts" : "/dashboard/articles"} />
         {isAdmin() ? (
-          <MetricCard title="Platform Comments" value={stats.totalComments} icon={MessageSquare} trend="Total" delay={0.3} />
+          <MetricCard title="Platform Comments" value={stats.totalComments} icon={MessageSquare} trend="Total" delay={0.3} to="/admin/comments" />
         ) : (
-          <MetricCard title="Avg Views / Post" value={stats.avgViews || 0} icon={TrendingUp} trend="Engagement" delay={0.3} />
+          <MetricCard title="Avg Views / Post" value={stats.avgViews || 0} icon={TrendingUp} trend="Engagement" delay={0.3} to="/dashboard/articles" />
         )}
-        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="Available" delay={0.4} />
+        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="Available" delay={0.4} to={isAdmin() ? "/admin/categories" : "/explore"} />
       </div>
 
       {/* Main Charts */}
