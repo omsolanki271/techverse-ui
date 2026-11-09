@@ -144,10 +144,20 @@ const DashboardArticles = () => {
                     <span className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-techverse-olive/20 text-techverse-green">
                       {article.category?.categoryTitle || 'Uncategorized'}
                     </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${article.status === 'DRAFT' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                      {article.status || 'PUBLISHED'}
+                    </span>
                   </div>
                   <h3 className="text-xl font-bold text-techverse-green leading-tight mb-2 line-clamp-2 group-hover:text-techverse-olive transition-colors">
                     {article.title}
                   </h3>
+                  <div className="flex items-center gap-3 text-[11px] text-techverse-green/60 mt-1">
+                    <span>{article.views || 0} views</span>
+                    <span>•</span>
+                    <span>{article.likeCount || 0} likes</span>
+                    <span>•</span>
+                    <span>{article.bookmarkCount || 0} bookmarks</span>
+                  </div>
                 </div>
               </div>
 

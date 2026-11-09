@@ -57,12 +57,17 @@ const DashboardAnalytics = () => {
 
         // Parallel requests
         const [postsRes, categories, comments] = await Promise.all([
-          isAdmin() ? postService.getAllPosts({ pageSize: 1000 }) : postService.getPostsByUser(userId, { pageSize: 1000 }),
-          categoryService.getAllCategories(),
-          commentService.getAllComments()
+          isAdmin()
+            ? postService.getAllPosts({ pageSize: 1000 }).catch(() => ({ content: [] }))
+            : postService.getPostsByUser(userId, { pageSize: 1000 }).catch(() => ({ content: [] })),
+          categoryService.getAllCategories().catch(() => []),
+          isAdmin()
+            ? commentService.getAllComments().catch(() => [])
+            : Promise.resolve([])
         ]);
 
-        const posts = postsRes.content || [];
+        const posts = postsRes?.content || [];
+        const cats = Array.isArray(categories) ? categories : [];
 
         // Process Category Data
         const catCountMap = {};
@@ -101,8 +106,8 @@ const DashboardAnalytics = () => {
         setStats({
           totalPosts: posts.length,
           totalComments: userComments.length,
-          totalCategories: categories.length,
-          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'None', value: 1 }],
+          totalCategories: cats.length,
+          categoryData: categoryData.length > 0 ? categoryData : [{ name: 'General', value: posts.length || 0 }],
           activityData: activityData.length > 0 ? activityData : [{ name: 'Today', posts: 0 }]
         });
 

@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams, useParams } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
+import { Link, useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { Search, ChevronLeft, ChevronRight, Bookmark, Heart, Share2, Clock, User } from 'lucide-react';
 import postService from '../../services/postService';
 import categoryService from '../../services/categoryService';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { categoryId: paramCatId } = useParams();
+  const navigate = useNavigate();
+
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   
@@ -18,15 +22,28 @@ const Explore = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Fetch Categories once
+  const { user } = useAuth();
+  const toast = useToast();
+
+  // Sync with URL query parameter changes
+  useEffect(() => {
+    const q = searchParams.get('q') || '';
+    setSearchQuery(q);
+    setInputQuery(q);
+  }, [searchParams]);
+
+  // Fetch Categories once and match paramCatId
   useEffect(() => {
     categoryService.getAllCategories().then((cats) => {
-      setCategories(cats || []);
-      if (paramCatId && cats?.length > 0) {
-        const found = cats.find(c => String(c.categoryId) === String(paramCatId));
+      const list = cats || [];
+      setCategories(list);
+      if (paramCatId && list.length > 0) {
+        const found = list.find(c => String(c.categoryId) === String(paramCatId));
         if (found) {
           setActiveCategory(found.categoryTitle);
         }
+      } else if (!paramCatId) {
+        setActiveCategory('All');
       }
     }).catch(console.error);
   }, [paramCatId]);
@@ -41,43 +58,128 @@ const Explore = () => {
         const size = 9;
         
         const cat = activeCategory !== 'All' ? categories.find(c => c.categoryTitle === activeCategory) : null;
-        const categoryId = cat ? cat.categoryId : null;
+        const categoryId = cat ? cat.categoryId : (paramCatId ? Number(paramCatId) : null);
 
-        if (searchQuery) {
-          // Use search endpoint which handles both keyword and categoryId
+        if (searchQuery.trim()) {
           const params = categoryId ? { categoryId } : {};
-          const res = await postService.searchPosts(searchQuery, params);
-          content = Array.isArray(res) ? res : (res.content || []);
-          total = 1; // Search endpoint is not paginated currently
+          const res = await postService.searchPosts(searchQuery.trim(), params);
+          content = Array.isArray(res) ? res : (res?.content || []);
+          total = 1;
         } else if (categoryId) {
-          // Use paginated category endpoint
           const res = await postService.getPostsByCategory(categoryId, { pageNumber: page, pageSize: size, sortBy: 'addedDate', sortDirection: 'desc' });
-          content = res.content || [];
-          total = res.totalPages || 1;
+          content = res?.content || [];
+          total = res?.totalPages || 1;
         } else {
-          // Get all posts paginated
           const res = await postService.getAllPosts({ pageNumber: page, pageSize: size, sortBy: 'addedDate', sortDirection: 'desc' });
-          content = res.content || [];
-          total = res.totalPages || 1;
+          content = res?.content || [];
+          total = res?.totalPages || 1;
         }
 
         setArticles(content);
         setTotalPages(total);
       } catch (err) {
         console.error('Failed to fetch posts', err);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPosts();
-  }, [searchQuery, activeCategory, page, categories]);
+  }, [activeCategory, searchQuery, page, categories, paramCatId]);
 
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchQuery(inputQuery);
-    setSearchParams(inputQuery ? { q: inputQuery } : {});
+    const trimmed = inputQuery.trim();
+    setSearchQuery(trimmed);
     setPage(0);
+    if (trimmed) {
+      setSearchParams({ q: trimmed });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const handleCategorySelect = (catTitle, catId) => {
+    setActiveCategory(catTitle);
+    setPage(0);
+    if (paramCatId) {
+      navigate('/explore');
+    }
+  };
+
+  const handleLike = async (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please log in to like posts');
+      return;
+    }
+    try {
+      const res = await postService.toggleLike(postId);
+      setArticles(articles.map(a => a.postId === postId ? { ...a, liked: res.liked, likeCount: res.likeCount } : a));
+      if (res.liked) toast.success('Liked post!');
+    } catch {
+      toast.error('Failed to update like');
+    }
+  };
+
+  const handleBookmark = async (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please log in to bookmark posts');
+      return;
+    }
+    try {
+      const res = await postService.toggleBookmark(postId);
+      setArticles(articles.map(a => a.postId === postId ? { ...a, bookmarked: res.bookmarked, bookmarkCount: res.bookmarkCount } : a));
+      toast.success(res.bookmarked ? 'Saved to bookmarks' : 'Removed from bookmarks');
+    } catch {
+      toast.error('Failed to update bookmark');
+    }
+  };
+
+  const copyToClipboard = async (text) => {
+    if (navigator?.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (e) {
+        // Fallback
+      }
+    }
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleShare = async (e, postId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/article/${postId}`;
+    const copied = await copyToClipboard(url);
+    if (copied) {
+      toast.success('Post link copied to clipboard!');
+    } else {
+      toast.error('Failed to copy link');
+    }
+    try {
+      await postService.incrementShare(postId);
+    } catch {
+      // Non-critical share counter update failure ignored
+    }
   };
 
   const getImageUrl = (imageName, postId) => {
@@ -88,48 +190,54 @@ const Explore = () => {
   };
 
   return (
-    <div className="pt-24 pb-20 bg-techverse-eggshell min-h-screen">
+    <div className="pt-28 pb-20 bg-techverse-eggshell min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-black mb-6 text-techverse-green">
-            Explore <span className="text-techverse-olive">Stories</span>
-          </h1>
-          <p className="opacity-70 max-w-2xl mx-auto text-techverse-green">
-            Discover the latest insights, tutorials, and perspectives from industry experts across all technology domains.
+        {/* Header Title */}
+        <div className="mb-10 text-center sm:text-left">
+          <h1 className="text-4xl sm:text-5xl font-black text-techverse-green tracking-tight">Explore Blogs</h1>
+          <p className="text-sm sm:text-base text-techverse-green/70 mt-2">
+            Curated ideas, insights, and engineering stories across technology domains.
           </p>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 bg-white p-4 rounded-sm shadow-sm border border-techverse-green/10">
+        {/* Filter & Search Bar */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
           
-          {/* Categories Tab */}
-          <div className="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
-            {['All', ...categories.map(c => c.categoryTitle)].map(category => (
+          {/* Categories Pill list */}
+          <div className="flex items-center space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+            <button
+              onClick={() => handleCategorySelect('All', null)}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap shadow-sm ${
+                activeCategory === 'All'
+                  ? 'bg-techverse-green text-techverse-eggshell'
+                  : 'bg-white text-techverse-green/70 hover:text-techverse-green hover:bg-white/80 border border-techverse-green/10'
+              }`}
+            >
+              All Topics
+            </button>
+            {categories.map((cat) => (
               <button
-                key={category}
-                onClick={() => { setActiveCategory(category); setPage(0); }}
-                className={`px-4 py-2 rounded-sm text-sm font-bold whitespace-nowrap transition-colors ${
-                  activeCategory === category 
-                    ? 'bg-techverse-green text-techverse-eggshell' 
-                    : 'text-techverse-green opacity-70 hover:opacity-100 hover:bg-techverse-green/5'
+                key={cat.categoryId}
+                onClick={() => handleCategorySelect(cat.categoryTitle, cat.categoryId)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap shadow-sm ${
+                  activeCategory === cat.categoryTitle
+                    ? 'bg-techverse-green text-techverse-eggshell'
+                    : 'bg-white text-techverse-green/70 hover:text-techverse-green hover:bg-white/80 border border-techverse-green/10'
                 }`}
               >
-                {category}
+                {cat.categoryTitle}
               </button>
             ))}
           </div>
 
-          {/* Search Input */}
-          <form onSubmit={handleSearch} className="relative w-full md:w-80">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={18} className="text-techverse-green opacity-50" />
-            </div>
+          {/* Search Box */}
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/40" size={16} />
             <input 
               type="text" 
-              placeholder="Search articles..." 
-              className="w-full pl-10 pr-4 py-2 bg-techverse-eggshell border-none rounded-sm text-sm focus:ring-2 focus:ring-techverse-olive text-techverse-green placeholder-techverse-green placeholder-opacity-40"
+              placeholder="Search blogs..." 
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-techverse-green/15 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-techverse-olive text-techverse-green placeholder-techverse-green/40 shadow-sm"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
             />
@@ -144,34 +252,68 @@ const Explore = () => {
           </div>
         ) : articles.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {articles.map(article => (
-                <div key={article.postId} className="group flex flex-col h-full">
-                  <Link to={`/article/${article.postId}`} className="block overflow-hidden rounded-sm mb-4 bg-techverse-green h-60">
-                    <img 
-                      src={getImageUrl(article.imageName, article.postId)} 
-                      alt={article.title} 
-                      className="w-full h-full object-cover opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
-                    />
-                  </Link>
-                  <div className="flex justify-between items-start mb-3">
-                    {article.category && (
-                      <span className="text-xs font-bold text-techverse-olive uppercase tracking-wider">
-                        {article.category.categoryTitle}
-                      </span>
-                    )}
+                <div key={article.postId} className="group bg-white rounded-2xl border border-techverse-green/10 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+                  <div>
+                    <Link to={`/article/${article.postId}`} className="block relative h-52 overflow-hidden bg-techverse-green">
+                      <img 
+                        src={getImageUrl(article.imageName, article.postId)} 
+                        alt={article.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                      />
+                      {article.category && (
+                        <span className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          {article.category.categoryTitle}
+                        </span>
+                      )}
+                    </Link>
+
+                    <div className="p-6">
+                      <Link to={`/article/${article.postId}`}>
+                        <h3 className="text-xl font-bold text-techverse-green group-hover:text-techverse-olive transition-colors line-clamp-2 mb-2 leading-snug">
+                          {article.title}
+                        </h3>
+                      </Link>
+
+                      <p className="text-xs text-techverse-green/70 line-clamp-3 leading-relaxed mb-4">
+                        {(article.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
+                      </p>
+                    </div>
                   </div>
-                  <Link to={`/article/${article.postId}`}>
-                    <h3 className="text-2xl font-bold mb-3 text-techverse-green group-hover:text-techverse-olive transition-colors leading-tight">
-                      {article.title}
-                    </h3>
-                  </Link>
-                  <p className="text-sm opacity-70 mb-6 text-techverse-green line-clamp-3 flex-grow">
-                    {(article.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
-                  </p>
-                  <div className="flex items-center justify-between text-xs font-medium text-techverse-green opacity-60 pt-4 border-t border-techverse-green/10">
-                    <span>{new Date(article.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                    <span>{article.user?.name || 'Anonymous'}</span>
+
+                  <div className="p-4 bg-techverse-eggshell/40 border-t border-techverse-green/5 flex items-center justify-between text-xs text-techverse-green/60">
+                    <Link to={`/author/${article.user?.id}`} className="font-semibold text-techverse-green hover:underline truncate max-w-[120px]">
+                      {article.user?.name || 'Author'}
+                    </Link>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => handleLike(e, article.postId)}
+                        className={`flex items-center gap-1 transition ${article.liked ? 'text-red-500 font-bold' : 'hover:text-red-500'}`}
+                        title="Like"
+                      >
+                        <Heart size={14} className={article.liked ? 'fill-red-500 text-red-500' : ''} />
+                        <span>{article.likeCount || 0}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => handleBookmark(e, article.postId)}
+                        className={`flex items-center gap-1 transition ${article.bookmarked ? 'text-techverse-olive font-bold' : 'hover:text-techverse-olive'}`}
+                        title="Bookmark"
+                      >
+                        <Bookmark size={14} className={article.bookmarked ? 'fill-techverse-olive text-techverse-olive' : ''} />
+                        <span>{article.bookmarkCount || 0}</span>
+                      </button>
+
+                      <button
+                        onClick={(e) => handleShare(e, article.postId)}
+                        className="p-1 hover:text-techverse-green transition"
+                        title="Share link"
+                      >
+                        <Share2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -183,36 +325,35 @@ const Explore = () => {
                 <button 
                   onClick={() => setPage(p => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  className="p-2 rounded-full border border-techverse-green text-techverse-green hover:bg-techverse-green hover:text-techverse-eggshell disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-techverse-green transition-colors"
+                  className="p-2 rounded-xl border border-techverse-green text-techverse-green hover:bg-techverse-green hover:text-techverse-eggshell disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-techverse-green transition-colors"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={18} />
                 </button>
-                <span className="text-sm font-bold text-techverse-green">
+                <span className="text-xs sm:text-sm font-bold text-techverse-green">
                   Page {page + 1} of {totalPages}
                 </span>
                 <button 
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={page === totalPages - 1}
-                  className="p-2 rounded-full border border-techverse-green text-techverse-green hover:bg-techverse-green hover:text-techverse-eggshell disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-techverse-green transition-colors"
+                  className="p-2 rounded-xl border border-techverse-green text-techverse-green hover:bg-techverse-green hover:text-techverse-eggshell disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-techverse-green transition-colors"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={18} />
                 </button>
               </div>
             )}
           </>
         ) : (
-          <div className="text-center py-20">
-            <h3 className="text-2xl font-bold text-techverse-green mb-2">No results found</h3>
-            <p className="opacity-70 text-techverse-green mb-6">Try adjusting your search or category filters.</p>
+          <div className="text-center py-20 bg-white rounded-2xl border border-techverse-green/10 p-8 shadow-sm">
+            <h3 className="text-2xl font-bold text-techverse-green mb-2">No blogs found</h3>
+            <p className="text-xs sm:text-sm text-techverse-green/60 mb-6">Try adjusting your search keywords or topic filter.</p>
             <button 
-              onClick={() => { setInputQuery(''); setSearchQuery(''); setActiveCategory('All'); setPage(0); }}
-              className="btn-outline px-6 py-2"
+              onClick={() => { setInputQuery(''); setSearchQuery(''); setActiveCategory('All'); setPage(0); setSearchParams({}); if (paramCatId) navigate('/explore'); }}
+              className="btn-primary text-xs px-5 py-2.5 rounded-lg"
             >
-              Clear Filters
+              Reset Filters
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

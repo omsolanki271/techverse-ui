@@ -3,10 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   User, Mail, MapPin, Globe, BookOpen, Clock,
-  ArrowLeft, RefreshCw, CheckCircle2, ArrowRight
+  ArrowLeft, RefreshCw, CheckCircle2, ArrowRight,
+  UserPlus, UserCheck, Bell, BellOff, Heart, Bookmark, Share2, Eye
 } from 'lucide-react';
 import userService from '../../services/userService';
 import postService from '../../services/postService';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 const GithubIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -33,35 +36,53 @@ const InstagramIcon = ({ size = 16, className = "" }) => (
 
 const AuthorProfile = () => {
   const { userId } = useParams();
+  const { user } = useAuth();
+  const toast = useToast();
+
   const [author, setAuthor] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Social & Engagement state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     const fetchAuthorData = async () => {
       try {
         setLoading(true);
 
-        // Fetch author details and posts concurrently
-        const [userData, postsData] = await Promise.allSettled([
+        const [userData, postsData, followStatus, subStatus] = await Promise.allSettled([
           userService.getUserById(userId),
-          postService.getPostsByUser(userId)
+          postService.getPostsByUser(userId, { pageSize: 50, sortBy: 'addedDate', sortDirection: 'desc' }),
+          userService.getFollowStatus(userId),
+          user ? userService.getSubscribeStatus(userId) : Promise.resolve({ subscribed: false })
         ]);
 
         if (userData.status === 'fulfilled') {
           setAuthor(userData.value);
-        } else {
-          console.error('Failed to load author info:', userData.reason);
         }
 
         if (postsData.status === 'fulfilled') {
           const fetchedPosts = postsData.value?.content || (Array.isArray(postsData.value) ? postsData.value : []);
           setPosts(fetchedPosts);
 
-          // Fallback author info from first post if getUserById failed or restricted
           if (userData.status !== 'fulfilled' && fetchedPosts.length > 0 && fetchedPosts[0].user) {
             setAuthor(fetchedPosts[0].user);
           }
+        }
+
+        if (followStatus.status === 'fulfilled') {
+          setIsFollowing(followStatus.value.following || false);
+          setFollowerCount(followStatus.value.followerCount || 0);
+          setFollowingCount(followStatus.value.followingCount || 0);
+        }
+
+        if (subStatus.status === 'fulfilled') {
+          setIsSubscribed(subStatus.value.subscribed || false);
         }
       } catch (error) {
         console.error('Error loading author profile page:', error);
@@ -73,7 +94,56 @@ const AuthorProfile = () => {
     if (userId) {
       fetchAuthorData();
     }
-  }, [userId]);
+  }, [userId, user]);
+
+  const requireAuth = (actionName) => {
+    if (!user) {
+      toast.error(`Please log in to ${actionName}.`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleFollowToggle = async () => {
+    if (!requireAuth('follow this author')) return;
+    setActionLoading(true);
+    try {
+      const res = await userService.toggleFollow(userId);
+      setIsFollowing(res.following);
+      setFollowerCount(res.followerCount);
+      setFollowingCount(res.followingCount);
+      toast.success(res.following ? `Following ${author?.name}` : `Unfollowed ${author?.name}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update follow status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSubscribeToggle = async () => {
+    if (!requireAuth('subscribe to this author')) return;
+    setActionLoading(true);
+    try {
+      const res = await userService.toggleSubscribe(userId);
+      setIsSubscribed(res.subscribed);
+      toast.success(res.subscribed ? `Subscribed to ${author?.name}'s publications!` : `Unsubscribed from ${author?.name}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update subscription');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSharePost = async (postId) => {
+    const postUrl = `${window.location.origin}/article/${postId}`;
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      toast.success('Article link copied to clipboard!');
+      await postService.incrementShare(postId);
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
 
   const getImageUrl = (imageName, postId) => {
     if (!imageName || imageName === 'default.png') {
@@ -81,6 +151,8 @@ const AuthorProfile = () => {
     }
     return postService.getPostImage(postId);
   };
+
+  const isOwner = user && author && (user.id === author.id || user.userId === author.id || user.email === author.email);
 
   if (loading) {
     return (
@@ -92,8 +164,6 @@ const AuthorProfile = () => {
       </div>
     );
   }
-
-  const roleName = author?.roles?.[0]?.name || author?.roles?.[0] || 'ROLE_USER';
 
   return (
     <div className="pt-24 pb-20 bg-techverse-eggshell min-h-screen">
@@ -133,10 +203,7 @@ const AuthorProfile = () => {
               {/* Author Info */}
               <div className="pb-1">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h1 className="text-3xl font-black text-techverse-eggshell">{author?.name || author?.username || `Author #${userId}`}</h1>
-                  {/* <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
-                    {roleName.replace('ROLE_', '')}
-                  </span> */}
+                  <h1 className="text-3xl font-black text-techverse-green">{author?.name || author?.username || `Author #${userId}`}</h1>
                 </div>
 
                 {author?.about && (
@@ -181,12 +248,54 @@ const AuthorProfile = () => {
               </div>
             </div>
 
-            {/* Author Stat Pill */}
-            <div className="flex items-center justify-center space-x-6 bg-techverse-eggshell/60 border border-techverse-green/10 px-6 py-3.5 rounded-xl self-center sm:self-end shadow-sm">
-              <div className="text-center">
-                <span className="block text-2xl font-black text-techverse-green">{posts.length}</span>
-                <span className="text-xs text-techverse-green/70 font-bold uppercase">Articles Published</span>
+            {/* Author Stat Pill & Action Buttons */}
+            <div className="flex flex-col sm:items-end gap-3 self-center sm:self-end">
+              <div className="flex items-center justify-center space-x-6 bg-techverse-eggshell/60 border border-techverse-green/10 px-6 py-3 rounded-xl shadow-sm">
+                <div className="text-center">
+                  <span className="block text-xl font-black text-techverse-green">{posts.length}</span>
+                  <span className="text-[10px] text-techverse-green/70 font-bold uppercase">Articles</span>
+                </div>
+                <div className="w-px h-7 bg-techverse-green/10"></div>
+                <div className="text-center">
+                  <span className="block text-xl font-black text-techverse-green">{followerCount}</span>
+                  <span className="text-[10px] text-techverse-green/70 font-bold uppercase">Followers</span>
+                </div>
+                <div className="w-px h-7 bg-techverse-green/10"></div>
+                <div className="text-center">
+                  <span className="block text-xl font-black text-techverse-green">{followingCount}</span>
+                  <span className="text-[10px] text-techverse-green/70 font-bold uppercase">Following</span>
+                </div>
               </div>
+
+              {!isOwner && (
+                <div className="flex items-center gap-2 justify-center sm:justify-end w-full">
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={actionLoading}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm ${
+                      isFollowing
+                        ? 'bg-techverse-eggshell text-techverse-green border border-techverse-green/20 hover:bg-red-50 hover:text-red-600'
+                        : 'bg-techverse-green text-techverse-eggshell hover:bg-techverse-green/90'
+                    }`}
+                  >
+                    {isFollowing ? <UserCheck size={14} /> : <UserPlus size={14} />}
+                    <span>{isFollowing ? 'Following' : 'Follow Author'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleSubscribeToggle}
+                    disabled={actionLoading}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm border ${
+                      isSubscribed
+                        ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                        : 'bg-white text-techverse-green border-techverse-green/20 hover:bg-techverse-eggshell'
+                    }`}
+                  >
+                    {isSubscribed ? <BellOff size={14} /> : <Bell size={14} />}
+                    <span>{isSubscribed ? 'Subscribed' : 'Subscribe'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -199,7 +308,7 @@ const AuthorProfile = () => {
               Articles Authored by {author?.name?.split(' ')[0] || 'Author'}
             </h2>
             <span className="text-xs font-bold text-techverse-green/60 uppercase tracking-wider">
-              {posts.length} {posts.length === 1 ? 'Post' : 'Posts'}
+              {posts.length} {posts.length === 1 ? 'Published Story' : 'Published Stories'}
             </span>
           </div>
 
@@ -210,43 +319,61 @@ const AuthorProfile = () => {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={article.postId || article.id}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-md border border-techverse-green/10 overflow-hidden flex flex-col transition-all duration-300"
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-md border border-techverse-green/10 overflow-hidden flex flex-col justify-between transition-all duration-300"
                 >
-                  <div className="overflow-hidden h-52 bg-techverse-green relative">
-                    <img
-                      src={getImageUrl(article.imageName, article.postId || article.id)}
-                      alt={article.title || article.postTitle}
-                      className="w-full h-full object-cover opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
-                    />
-                    {article.category && (
-                      <span className="absolute top-4 left-4 bg-techverse-green text-techverse-eggshell text-xs font-bold px-3 py-1 uppercase tracking-wider rounded-sm shadow-sm">
-                        {article.category.categoryTitle}
-                      </span>
-                    )}
-                  </div>
+                  <div>
+                    <Link to={`/article/${article.postId || article.id}`} className="block overflow-hidden h-52 bg-techverse-green relative">
+                      <img
+                        src={getImageUrl(article.imageName, article.postId || article.id)}
+                        alt={article.title || article.postTitle}
+                        className="w-full h-full object-cover opacity-90 group-hover:scale-105 group-hover:opacity-100 transition-all duration-500"
+                      />
+                      {article.category && (
+                        <span className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                          {article.category.categoryTitle}
+                        </span>
+                      )}
+                    </Link>
 
-                  <div className="p-6 flex-grow flex flex-col justify-between">
-                    <div>
+                    <div className="p-6">
                       <Link to={`/article/${article.postId || article.id}`}>
-                        <h3 className="text-xl font-bold mb-3 text-techverse-green group-hover:text-techverse-olive transition-colors leading-tight">
+                        <h3 className="text-xl font-bold text-techverse-green group-hover:text-techverse-olive transition-colors line-clamp-2 mb-2 leading-snug">
                           {article.title || article.postTitle}
                         </h3>
                       </Link>
-                      <p className="text-xs text-techverse-green/70 line-clamp-3 mb-4 leading-relaxed">
-                        {article.content?.replace(/<[^>]*>?/gm, '').substring(0, 140)}...
+
+                      <p className="text-xs text-techverse-green/70 line-clamp-3 leading-relaxed mb-4">
+                        {(article.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
                       </p>
                     </div>
+                  </div>
 
-                    <div className="pt-4 border-t border-techverse-green/10 flex items-center justify-between text-xs text-techverse-green/60 font-medium">
-                      <span className="flex items-center">
-                        <Clock size={14} className="mr-1 opacity-70" />
-                        {new Date(article.addedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  <div className="p-4 bg-techverse-eggshell/40 border-t border-techverse-green/5 flex items-center justify-between text-xs text-techverse-green/60">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Heart size={13} className="text-red-500 fill-red-500" />
+                        {article.likeCount || 0}
                       </span>
+                      <span className="flex items-center gap-1">
+                        <Bookmark size={13} />
+                        {article.bookmarkCount || 0}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSharePost(article.postId || article.id)}
+                        className="p-1.5 hover:text-techverse-green transition"
+                        title="Copy link"
+                      >
+                        <Share2 size={14} />
+                      </button>
                       <Link
                         to={`/article/${article.postId || article.id}`}
-                        className="font-bold text-techverse-olive hover:underline flex items-center"
+                        className="inline-flex items-center gap-1 font-bold text-techverse-olive hover:text-techverse-green transition"
                       >
-                        Read Article <ArrowRight size={14} className="ml-1" />
+                        <span>Read</span>
+                        <ArrowRight size={13} />
                       </Link>
                     </div>
                   </div>
@@ -254,13 +381,12 @@ const AuthorProfile = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-12 text-center border border-techverse-green/10 shadow-sm max-w-xl mx-auto">
-              <BookOpen size={48} className="mx-auto mb-4 text-techverse-green/30" />
-              <h3 className="text-xl font-extrabold text-techverse-green mb-2">No Published Articles Yet</h3>
-              <p className="text-xs text-techverse-green/70 mb-6">This author hasn't published any public articles on TechVerse yet.</p>
-              <Link to="/explore" className="btn-primary text-xs px-6 py-2.5">
-                Explore Other Articles
-              </Link>
+            <div className="text-center py-20 bg-white rounded-2xl border border-techverse-green/10 p-8 shadow-sm">
+              <BookOpen size={48} className="mx-auto text-techverse-green/20 mb-3" />
+              <h3 className="text-lg font-bold text-techverse-green">No published articles yet</h3>
+              <p className="text-xs text-techverse-green/60 mt-1 max-w-sm mx-auto">
+                This author hasn't published any public articles yet. Check back soon for new stories!
+              </p>
             </div>
           )}
         </section>

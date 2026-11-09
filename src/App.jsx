@@ -25,6 +25,9 @@ import Register from './pages/auth/Register';
 // Dashboard Pages
 import Overview from './pages/dashboard/Overview';
 import DashboardArticles from './pages/dashboard/DashboardArticles';
+import DashboardDrafts from './pages/dashboard/DashboardDrafts';
+import DashboardBookmarks from './pages/dashboard/DashboardBookmarks';
+import DashboardFollowing from './pages/dashboard/DashboardFollowing';
 import Editor from './pages/dashboard/Editor';
 import MyMedia from './pages/dashboard/MyMedia';
 import Profile from './pages/dashboard/Profile';
@@ -76,11 +79,15 @@ function App() {
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Overview />} />
                 <Route path="articles" element={<DashboardArticles />} />
+                <Route path="drafts" element={<DashboardDrafts />} />
+                <Route path="bookmarks" element={<DashboardBookmarks />} />
+                <Route path="following" element={<DashboardFollowing />} />
                 <Route path="articles/new" element={<Editor />} />
                 <Route path="articles/:id/edit" element={<Editor />} />
                 <Route path="media" element={<MyMedia />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
+              <Route path="/editor" element={<Navigate to="/dashboard/articles/new" replace />} />
             </Route>
 
             {/* Profile route redirect to dashboard profile */}

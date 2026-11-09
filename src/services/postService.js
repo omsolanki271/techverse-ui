@@ -13,8 +13,6 @@ const postService = {
   },
 
   getAllPosts: async (params = {}) => {
-    // API maps to GET /api/posts/
-    // It accepts pageNumber, pageSize, sortBy, sortDirection as params
     const response = await api.get('/posts/', { params });
     return response.data;
   },
@@ -35,8 +33,6 @@ const postService = {
   },
 
   searchPosts: async (keyword, params = {}) => {
-    // API maps to GET /api/posts/search?keyword=...
-    // The backend endpoint returns a List<PostDto>, not a paginated PostResponse.
     const response = await api.get('/posts/search', { params: { keyword, ...params } });
     return response.data;
   },
@@ -58,10 +54,57 @@ const postService = {
   },
 
   getPostImage: (postId) => {
-    // Return the URL directly using the base URL
-    // We assume VITE_API_BASE_URL is something like "http://localhost:8081/api"
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
     return `${baseUrl}/posts/image/${postId}`;
+  },
+
+  // Feature 1 & 7: Likes
+  toggleLike: async (postId) => {
+    const response = await api.post(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  getLikeStatus: async (postId) => {
+    const response = await api.get(`/posts/${postId}/like-status`);
+    return response.data;
+  },
+
+  // Feature 4 & 8: Bookmarks
+  toggleBookmark: async (postId) => {
+    const response = await api.post(`/posts/${postId}/bookmark`);
+    return response.data;
+  },
+
+  getBookmarkStatus: async (postId) => {
+    const response = await api.get(`/posts/${postId}/bookmark-status`);
+    return response.data;
+  },
+
+  getMyBookmarks: async (params = {}) => {
+    const response = await api.get('/posts/bookmarks/my-bookmarks', { params });
+    return response.data;
+  },
+
+  // Feature 5: Share counter
+  incrementShare: async (postId) => {
+    const response = await api.post(`/posts/${postId}/share`);
+    return response.data;
+  },
+
+  // Feature 9 & 10: Draft functionality
+  publishPost: async (postId) => {
+    const response = await api.put(`/posts/${postId}/publish`);
+    return response.data;
+  },
+
+  getMyDrafts: async (params = {}) => {
+    const response = await api.get('/posts/drafts/my-drafts', { params });
+    return response.data;
+  },
+
+  getUserPostCounts: async (userId) => {
+    const response = await api.get(`/posts/user/${userId}/counts`);
+    return response.data;
   }
 };
 

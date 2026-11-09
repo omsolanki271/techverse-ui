@@ -19,6 +19,7 @@ const Editor = () => {
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState([]);
+  const [postStatus, setPostStatus] = useState('PUBLISHED');
   
   // Media handling
   const [selectedMediaId, setSelectedMediaId] = useState(null);
@@ -30,6 +31,7 @@ const Editor = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingAction, setSavingAction] = useState('');
 
   useEffect(() => {
     const fetchDependencies = async () => {
@@ -55,6 +57,7 @@ const Editor = () => {
           const post = await postService.getPostById(id);
           setTitle(post.title);
           setContent(post.content);
+          if (post.status) setPostStatus(post.status);
           if (post.category) setCategoryId(post.category.categoryId);
           if (post.imageName && post.imageName !== 'default.png') {
             setMediaPreview(postService.getPostImage(post.postId));
@@ -70,28 +73,35 @@ const Editor = () => {
     }
   }, [id, navigate, toast]);
 
-  const handleSave = async () => {
+  const handleSave = async (targetStatus = 'PUBLISHED') => {
     if (!title.trim() || !content.trim() || !categoryId) {
       toast.error('Title, content, and category are required.');
       return;
     }
 
     setSaving(true);
+    setSavingAction(targetStatus);
     try {
       const postData = {
         title,
         content,
+        status: targetStatus,
         ...(selectedMediaId && { mediaId: selectedMediaId })
       };
 
       if (id) {
         await postService.updatePost(id, postData);
-        toast.success('Post updated successfully');
+        toast.success(targetStatus === 'DRAFT' ? 'Draft saved successfully' : 'Post published successfully');
       } else {
         await postService.createPost(categoryId, postData);
-        toast.success('Post created successfully');
+        toast.success(targetStatus === 'DRAFT' ? 'Saved as draft' : 'Post published successfully');
       }
-      navigate('/dashboard/articles');
+      
+      if (targetStatus === 'DRAFT') {
+        navigate('/dashboard/drafts');
+      } else {
+        navigate('/dashboard/articles');
+      }
     } catch (err) {
       console.error('Save post error:', err);
       if (err.response?.data) {
@@ -106,6 +116,7 @@ const Editor = () => {
       }
     } finally {
       setSaving(false);
+      setSavingAction('');
     }
   };
 
@@ -157,19 +168,29 @@ const Editor = () => {
           <div className="flex items-center space-x-3">
             <div className={`w-2 h-2 rounded-full ${saving ? 'bg-techverse-olive animate-pulse' : 'bg-techverse-green'}`}></div>
             <span className="text-xs font-bold text-techverse-green opacity-60 uppercase tracking-wider">
-              {id ? 'Editing Post' : 'New Post'}
+              {id ? `Editing Post (${postStatus})` : 'New Post'}
             </span>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button 
-              onClick={handleSave}
+              onClick={() => handleSave('DRAFT')}
               disabled={saving}
-              className="btn-primary py-1.5 px-5 text-sm rounded-full shadow-md disabled:opacity-50 flex items-center"
+              className="py-1.5 px-4 text-xs sm:text-sm font-semibold rounded-full border border-techverse-green/20 text-techverse-green bg-white hover:bg-techverse-eggshell disabled:opacity-50 transition shadow-sm flex items-center"
             >
-              {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
-              {id ? 'Update' : 'Publish'}
+              {saving && savingAction === 'DRAFT' ? <Loader2 size={15} className="animate-spin mr-1.5" /> : null}
+              <span>Save Draft</span>
             </button>
+
+            <button 
+              onClick={() => handleSave('PUBLISHED')}
+              disabled={saving}
+              className="btn-primary py-1.5 px-5 text-xs sm:text-sm rounded-full shadow-md disabled:opacity-50 flex items-center"
+            >
+              {saving && savingAction === 'PUBLISHED' ? <Loader2 size={15} className="animate-spin mr-2" /> : <Save size={15} className="mr-2" />}
+              <span>{id && postStatus === 'PUBLISHED' ? 'Update Post' : 'Publish Post'}</span>
+            </button>
+
             <button 
               className={`p-2 rounded-full transition-colors ${sidebarOpen ? 'bg-techverse-olive text-techverse-green' : 'bg-techverse-eggshell text-techverse-green hover:bg-techverse-green/10'}`}
               onClick={() => setSidebarOpen(!sidebarOpen)}

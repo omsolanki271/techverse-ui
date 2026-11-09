@@ -47,7 +47,7 @@ const AdminOverview = () => {
       ]);
 
       const usersArr = Array.isArray(users) ? users : [];
-      const postsArr = postsRes?.content || [];
+      const postsArr = Array.isArray(postsRes?.content) ? postsRes.content : (Array.isArray(postsRes) ? postsRes : []);
       const categoriesArr = Array.isArray(categories) ? categories : [];
       const commentsArr = Array.isArray(comments) ? comments : [];
 
@@ -145,7 +145,7 @@ const AdminOverview = () => {
       value: stats.totalPosts,
       icon: BookOpen,
       path: '/admin/posts',
-      desc: 'Published articles & stories',
+      desc: 'Published blogs & posts',
       actionText: 'Manage all posts',
       badgeColor: 'bg-green-50 text-techverse-green'
     },
@@ -277,7 +277,7 @@ const AdminOverview = () => {
                 <h2 className="text-lg font-bold text-techverse-green">Publishing Activity</h2>
               </div>
               <p className="text-xs text-techverse-green/60 mt-0.5">
-                Number of articles published across the last 7 days
+                Number of posts published across the last 7 days
               </p>
             </div>
             <Link
@@ -345,7 +345,7 @@ const AdminOverview = () => {
               <span>Daily publication volume</span>
             </div>
             <Link to="/admin/posts" className="font-semibold text-techverse-green hover:underline">
-              Total {stats.totalPosts} articles in database →
+              Total {stats.totalPosts} posts in database →
             </Link>
           </div>
         </motion.div>
@@ -421,20 +421,23 @@ const AdminOverview = () => {
             </div>
           </div>
 
-          {/* Category Chips Legend */}
+          {/* Category Chips Legend with live counts */}
           <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1 pt-2 border-t border-techverse-green/5 scrollbar-thin">
             {stats.categoryData.map((cat, idx) => (
               <div
                 key={idx}
-                onClick={() => navigate('/admin/categories')}
-                className="flex items-center justify-between text-xs py-1 px-2 rounded-md hover:bg-techverse-eggshell/60 cursor-pointer transition"
+                onClick={() => navigate('/admin/posts')}
+                className="flex items-center justify-between text-xs py-1 px-2 rounded-md hover:bg-techverse-eggshell/60 cursor-pointer transition group"
+                title={`Filter posts in ${cat.name}`}
               >
                 <div className="flex items-center gap-2 truncate">
                   <span
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: totalCatPosts > 0 ? CHART_COLORS[idx % CHART_COLORS.length] : '#94A3B8' }}
                   />
-                  <span className="font-medium text-techverse-green truncate">{cat.name}</span>
+                  <span className="font-medium text-techverse-green group-hover:text-techverse-olive truncate">
+                    {cat.name} ({cat.value})
+                  </span>
                 </div>
                 <span className="font-bold text-techverse-green/70 shrink-0 ml-2">
                   {cat.value} {cat.value === 1 ? 'post' : 'posts'}
@@ -484,7 +487,7 @@ const AdminOverview = () => {
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-techverse-green/5">
           <div>
             <h2 className="text-lg font-bold text-techverse-green">Recent Platform Posts</h2>
-            <p className="text-xs text-techverse-green/60 mt-0.5">Latest articles published on TechVerse</p>
+            <p className="text-xs text-techverse-green/60 mt-0.5">Latest posts published on TechVerse</p>
           </div>
           <Link
             to="/admin/posts"
@@ -498,8 +501,8 @@ const AdminOverview = () => {
         {stats.recentPosts.length === 0 ? (
           <div className="text-center py-10">
             <BookOpen size={40} className="mx-auto text-techverse-green/30 mb-2" />
-            <p className="text-sm font-semibold text-techverse-green/70">No articles published yet.</p>
-            <p className="text-xs text-techverse-green/50 mt-1">Write your first article to populate system graphs and feeds.</p>
+            <p className="text-sm font-semibold text-techverse-green/70">No posts published yet.</p>
+            <p className="text-xs text-techverse-green/50 mt-1">Write your first post to populate system graphs and feeds.</p>
             <Link
               to="/editor"
               className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-techverse-green text-techverse-eggshell hover:bg-techverse-green/90 transition shadow-sm"
