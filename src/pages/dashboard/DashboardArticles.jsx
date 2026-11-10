@@ -59,11 +59,14 @@ const DashboardArticles = () => {
     visible: { opacity: 1, y: 0 }
   };
 
-  const getImageUrl = (imageName, postId) => {
-    if (!imageName || imageName === 'default.png') {
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+  const getImageUrl = (post) => {
+    if (!post) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+    if (post.cloudinaryUrl) return post.cloudinaryUrl;
+    if (post.media?.cloudinaryUrl) return post.media.cloudinaryUrl;
+    if (post.imageName && post.imageName !== 'default.png') {
+      return postService.getPostImage(post.postId);
     }
-    return postService.getPostImage(postId);
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
   };
 
   return (
@@ -137,7 +140,15 @@ const DashboardArticles = () => {
             >
               <div className={`flex-1 ${viewMode === 'list' ? 'flex items-center gap-6' : 'mb-6'}`}>
                 <div className={`${viewMode === 'list' ? 'w-32 h-20' : 'w-full h-32'} rounded-2xl overflow-hidden bg-techverse-eggshell mb-4 ${viewMode === 'list' ? 'mb-0 flex-shrink-0' : ''}`}>
-                  <img src={getImageUrl(article.imageName, article.postId)} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img
+                    src={getImageUrl(article)}
+                    alt={article.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-2">

@@ -71,7 +71,7 @@ const Overview = () => {
         const admin = isAdmin();
 
         const [postsRes, categories, commentsRes, countsRes, followRes] = await Promise.all([
-          admin ? postService.getAllPosts({ pageSize: 1000 }) : postService.getPostsByUser(userId, { pageSize: 1000 }),
+          admin ? postService.getAllPosts({ pageSize: 1000 }).catch(() => ({ content: [] })) : postService.getPostsByUser(userId, { pageSize: 1000 }).catch(() => ({ content: [] })),
           categoryService.getAllCategories().catch(() => []),
           admin ? commentService.getAllComments().catch(() => []) : Promise.resolve([]),
           userId ? postService.getUserPostCounts(userId).catch(() => ({ publishedCount: 0, draftCount: 0, totalCount: 0 })) : Promise.resolve({ publishedCount: 0, draftCount: 0, totalCount: 0 }),

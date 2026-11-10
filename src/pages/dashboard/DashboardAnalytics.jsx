@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell
@@ -12,28 +13,35 @@ import { useAuth } from '../../context/AuthContext';
 
 const COLORS = ['#133215', '#92B775', '#5a8241', '#a8c691', '#405B36', '#BBD3A5'];
 
-const MetricCard = ({ title, value, icon: Icon, trend, delay }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.4 }}
-    className="bg-white rounded-xl shadow-sm border border-techverse-green/10 p-6 flex items-center justify-between"
-  >
-    <div>
-      <p className="text-techverse-green/60 font-medium mb-1 text-sm">{title}</p>
-      <h4 className="text-2xl font-black text-techverse-green">{value}</h4>
-      {trend && (
-        <div className="flex items-center mt-2 text-xs font-bold text-techverse-olive">
-          <TrendingUp size={14} className="mr-1" />
-          {trend}
-        </div>
-      )}
-    </div>
-    <div className="w-12 h-12 rounded-full bg-techverse-eggshell/50 flex items-center justify-center text-techverse-green">
-      <Icon size={24} />
-    </div>
-  </motion.div>
-);
+const MetricCard = ({ title, value, icon: Icon, trend, delay, to }) => {
+  const card = (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={to ? { y: -3 } : {}}
+      transition={{ delay, duration: 0.3 }}
+      className={`bg-white rounded-xl shadow-sm border border-techverse-green/10 p-6 flex items-center justify-between transition-all ${
+        to ? 'cursor-pointer hover:border-techverse-olive hover:shadow-md group' : ''
+      }`}
+    >
+      <div>
+        <p className="text-techverse-green/60 font-medium mb-1 text-sm">{title}</p>
+        <h4 className="text-2xl font-black text-techverse-green">{value}</h4>
+        {trend && (
+          <div className="flex items-center mt-2 text-xs font-bold text-techverse-olive group-hover:text-techverse-green transition-colors">
+            <TrendingUp size={14} className="mr-1" />
+            {trend}
+          </div>
+        )}
+      </div>
+      <div className="w-12 h-12 rounded-full bg-techverse-eggshell/50 flex items-center justify-center text-techverse-green group-hover:bg-techverse-olive/20 transition-colors">
+        <Icon size={24} />
+      </div>
+    </motion.div>
+  );
+
+  return to ? <Link to={to} className="block">{card}</Link> : card;
+};
 
 const DashboardAnalytics = () => {
   const { user, isAdmin } = useAuth();
@@ -140,11 +148,11 @@ const DashboardAnalytics = () => {
         </p>
       </div>
 
-      {/* Top Metrics */}
+      {/* Top Metrics with direct navigation */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Active" delay={0.1} />
-        <MetricCard title="Total Comments" value={stats.totalComments} icon={MessageSquare} trend="Active" delay={0.2} />
-        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="System" delay={0.3} />
+        <MetricCard title="Total Posts" value={stats.totalPosts} icon={PenTool} trend="Active" delay={0.1} to="/dashboard/articles" />
+        <MetricCard title="Total Comments" value={stats.totalComments} icon={MessageSquare} trend="Active" delay={0.2} to="/dashboard" />
+        <MetricCard title="Active Categories" value={stats.totalCategories} icon={Layers} trend="System" delay={0.3} to="/explore" />
       </div>
 
       {/* Main Charts */}

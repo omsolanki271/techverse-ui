@@ -17,7 +17,7 @@ const AdminPosts = () => {
 
   const fetchPosts = async () => {
     try {
-      const data = await postService.getAllPosts({ pageSize: 100 });
+      const data = await postService.getAllPosts({ pageSize: 500 });
       setPosts(data.content || []);
     } catch (err) {
       toast.error('Failed to load posts');
@@ -43,7 +43,7 @@ const AdminPosts = () => {
     <div className="space-y-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-techverse-green">Post Management</h1>
-        <p className="text-techverse-green/70">Manage all articles across the platform.</p>
+        <p className="text-techverse-green/70">Manage all blogs and posts across the platform.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-techverse-green/10 overflow-hidden">
@@ -55,6 +55,7 @@ const AdminPosts = () => {
                 <th className="p-4 font-bold text-techverse-green uppercase">Title</th>
                 <th className="p-4 font-bold text-techverse-green uppercase">Author</th>
                 <th className="p-4 font-bold text-techverse-green uppercase">Category</th>
+                <th className="p-4 font-bold text-techverse-green uppercase">Status</th>
                 <th className="p-4 font-bold text-techverse-green uppercase">Date</th>
                 <th className="p-4 font-bold text-techverse-green uppercase text-right">Actions</th>
               </tr>
@@ -68,6 +69,15 @@ const AdminPosts = () => {
                   <td className="p-4 text-sm text-techverse-green/80">
                     <span className="bg-techverse-olive/20 text-techverse-green px-2 py-1 rounded-sm text-xs font-bold uppercase">
                       {p.category?.categoryTitle || 'None'}
+                    </span>
+                  </td>
+                  <td className="p-4 text-sm">
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                      p.status?.toUpperCase() === 'DRAFT'
+                        ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                        : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    }`}>
+                      {p.status?.toUpperCase() === 'DRAFT' ? 'Draft' : 'Published'}
                     </span>
                   </td>
                   <td className="p-4 text-sm text-techverse-green/70">{new Date(p.addedDate).toLocaleDateString()}</td>

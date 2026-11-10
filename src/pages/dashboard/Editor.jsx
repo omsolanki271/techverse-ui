@@ -59,7 +59,9 @@ const Editor = () => {
           setContent(post.content);
           if (post.status) setPostStatus(post.status);
           if (post.category) setCategoryId(post.category.categoryId);
-          if (post.imageName && post.imageName !== 'default.png') {
+          if (post.cloudinaryUrl) {
+            setMediaPreview(post.cloudinaryUrl);
+          } else if (post.imageName && post.imageName !== 'default.png') {
             setMediaPreview(postService.getPostImage(post.postId));
           }
         } catch (err) {
@@ -205,7 +207,7 @@ const Editor = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             
             <textarea
-              placeholder="Article Title..."
+              placeholder="Post Title..."
               className="w-full text-4xl sm:text-5xl lg:text-6xl font-black bg-transparent border-none focus:ring-0 resize-none text-techverse-green placeholder-techverse-green/20 leading-tight"
               rows={1}
               value={title}

@@ -230,11 +230,14 @@ const ArticleDetails = () => {
     }
   };
 
-  const getImageUrl = (imageName, postId) => {
-    if (!imageName || imageName === 'default.png') {
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200';
+  const getImageUrl = (post) => {
+    if (!post) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200';
+    if (post.cloudinaryUrl) return post.cloudinaryUrl;
+    if (post.media?.cloudinaryUrl) return post.media.cloudinaryUrl;
+    if (post.imageName && post.imageName !== 'default.png') {
+      return postService.getPostImage(post.postId);
     }
-    return postService.getPostImage(postId);
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200';
   };
 
   const isOwner = user && article?.user && (user.id === article.user.id || user.userId === article.user.id || user.email === article.user.email);
@@ -328,7 +331,15 @@ const ArticleDetails = () => {
         {/* Hero Image */}
         <figure className="mb-12">
           <div className="rounded-2xl overflow-hidden bg-techverse-green h-[350px] md:h-[480px] shadow-sm">
-            <img src={getImageUrl(article.imageName, article.postId)} alt={article.title} className="w-full h-full object-cover" />
+            <img
+              src={getImageUrl(article)}
+              alt={article.title}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200';
+              }}
+              className="w-full h-full object-cover"
+            />
           </div>
         </figure>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useParams, useNavigate } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, Bookmark, Heart, Share2, Clock, User } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Bookmark, Heart, Share2 } from 'lucide-react';
 import postService from '../../services/postService';
 import categoryService from '../../services/categoryService';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,7 @@ const Explore = () => {
   const { categoryId: paramCatId } = useParams();
   const navigate = useNavigate();
 
-  const [articles, setArticles] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   
   const [activeCategory, setActiveCategory] = useState('All');
@@ -50,6 +50,7 @@ const Explore = () => {
 
   // Fetch Posts based on filters
   useEffect(() => {
+    let isCancelled = false;
     const fetchPosts = async () => {
       setLoading(true);
       try {
@@ -75,17 +76,22 @@ const Explore = () => {
           total = res?.totalPages || 1;
         }
 
-        setArticles(content);
-        setTotalPages(total);
+        if (!isCancelled) {
+          setPosts(content);
+          setTotalPages(total);
+        }
       } catch (err) {
         console.error('Failed to fetch posts', err);
-        setArticles([]);
+        if (!isCancelled) {
+          setPosts([]);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
 
     fetchPosts();
+    return () => { isCancelled = true; };
   }, [activeCategory, searchQuery, page, categories, paramCatId]);
 
   const handleSearchSubmit = (e) => {
@@ -117,7 +123,7 @@ const Explore = () => {
     }
     try {
       const res = await postService.toggleLike(postId);
-      setArticles(articles.map(a => a.postId === postId ? { ...a, liked: res.liked, likeCount: res.likeCount } : a));
+      setPosts(posts.map(p => p.postId === postId ? { ...p, liked: res.liked, likeCount: res.likeCount } : p));
       if (res.liked) toast.success('Liked post!');
     } catch {
       toast.error('Failed to update like');
@@ -133,7 +139,7 @@ const Explore = () => {
     }
     try {
       const res = await postService.toggleBookmark(postId);
-      setArticles(articles.map(a => a.postId === postId ? { ...a, bookmarked: res.bookmarked, bookmarkCount: res.bookmarkCount } : a));
+      setPosts(posts.map(p => p.postId === postId ? { ...p, bookmarked: res.bookmarked, bookmarkCount: res.bookmarkCount } : p));
       toast.success(res.bookmarked ? 'Saved to bookmarks' : 'Removed from bookmarks');
     } catch {
       toast.error('Failed to update bookmark');
@@ -182,11 +188,14 @@ const Explore = () => {
     }
   };
 
-  const getImageUrl = (imageName, postId) => {
-    if (!imageName || imageName === 'default.png') {
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+  const getImageUrl = (post) => {
+    if (!post) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+    if (post.cloudinaryUrl) return post.cloudinaryUrl;
+    if (post.media?.cloudinaryUrl) return post.media.cloudinaryUrl;
+    if (post.imageName && post.imageName !== 'default.png') {
+      return postService.getPostImage(post.postId);
     }
-    return postService.getPostImage(postId);
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
   };
 
   return (
@@ -205,7 +214,7 @@ const Explore = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
           
           {/* Categories Pill list */}
-          <div className="flex items-center space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
+          <div className="flex items-center space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar">
             <button
               onClick={() => handleCategorySelect('All', null)}
               className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap shadow-sm ${
@@ -250,64 +259,68 @@ const Explore = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-techverse-olive"></div>
           </div>
-        ) : articles.length > 0 ? (
+        ) : posts.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map(article => (
-                <div key={article.postId} className="group bg-white rounded-2xl border border-techverse-green/10 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+              {posts.map(post => (
+                <div key={post.postId} className="group bg-white rounded-2xl border border-techverse-green/10 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
                   <div>
-                    <Link to={`/article/${article.postId}`} className="block relative h-52 overflow-hidden bg-techverse-green">
+                    <Link to={`/article/${post.postId}`} className="block relative h-52 overflow-hidden bg-techverse-green">
                       <img 
-                        src={getImageUrl(article.imageName, article.postId)} 
-                        alt={article.title} 
+                        src={getImageUrl(post)} 
+                        alt={post.title} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+                        }}
                         className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                       />
-                      {article.category && (
+                      {post.category && (
                         <span className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
-                          {article.category.categoryTitle}
+                          {post.category.categoryTitle}
                         </span>
                       )}
                     </Link>
 
                     <div className="p-6">
-                      <Link to={`/article/${article.postId}`}>
+                      <Link to={`/article/${post.postId}`}>
                         <h3 className="text-xl font-bold text-techverse-green group-hover:text-techverse-olive transition-colors line-clamp-2 mb-2 leading-snug">
-                          {article.title}
+                          {post.title}
                         </h3>
                       </Link>
 
                       <p className="text-xs text-techverse-green/70 line-clamp-3 leading-relaxed mb-4">
-                        {(article.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
+                        {(post.content || '').replace(/<[^>]*>/g, '').substring(0, 160) + '...'}
                       </p>
                     </div>
                   </div>
 
                   <div className="p-4 bg-techverse-eggshell/40 border-t border-techverse-green/5 flex items-center justify-between text-xs text-techverse-green/60">
-                    <Link to={`/author/${article.user?.id}`} className="font-semibold text-techverse-green hover:underline truncate max-w-[120px]">
-                      {article.user?.name || 'Author'}
+                    <Link to={`/author/${post.user?.id}`} className="font-semibold text-techverse-green hover:underline truncate max-w-[120px]">
+                      {post.user?.name || 'Author'}
                     </Link>
 
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={(e) => handleLike(e, article.postId)}
-                        className={`flex items-center gap-1 transition ${article.liked ? 'text-red-500 font-bold' : 'hover:text-red-500'}`}
+                        onClick={(e) => handleLike(e, post.postId)}
+                        className={`flex items-center gap-1 transition ${post.liked ? 'text-red-500 font-bold' : 'hover:text-red-500'}`}
                         title="Like"
                       >
-                        <Heart size={14} className={article.liked ? 'fill-red-500 text-red-500' : ''} />
-                        <span>{article.likeCount || 0}</span>
+                        <Heart size={14} className={post.liked ? 'fill-red-500 text-red-500' : ''} />
+                        <span>{post.likeCount || 0}</span>
                       </button>
 
                       <button
-                        onClick={(e) => handleBookmark(e, article.postId)}
-                        className={`flex items-center gap-1 transition ${article.bookmarked ? 'text-techverse-olive font-bold' : 'hover:text-techverse-olive'}`}
+                        onClick={(e) => handleBookmark(e, post.postId)}
+                        className={`flex items-center gap-1 transition ${post.bookmarked ? 'text-techverse-olive font-bold' : 'hover:text-techverse-olive'}`}
                         title="Bookmark"
                       >
-                        <Bookmark size={14} className={article.bookmarked ? 'fill-techverse-olive text-techverse-olive' : ''} />
-                        <span>{article.bookmarkCount || 0}</span>
+                        <Bookmark size={14} className={post.bookmarked ? 'fill-techverse-olive text-techverse-olive' : ''} />
+                        <span>{post.bookmarkCount || 0}</span>
                       </button>
 
                       <button
-                        onClick={(e) => handleShare(e, article.postId)}
+                        onClick={(e) => handleShare(e, post.postId)}
                         className="p-1 hover:text-techverse-green transition"
                         title="Share link"
                       >

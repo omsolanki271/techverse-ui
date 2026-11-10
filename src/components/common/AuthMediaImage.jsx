@@ -4,17 +4,24 @@ import { Image as ImageIcon, Loader2 } from 'lucide-react';
 
 const AuthMediaImage = ({ 
   mediaId, 
+  cloudinaryUrl,
   alt = 'Media image', 
   className = '', 
   fallback = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400' 
 }) => {
-  const [imageSrc, setImageSrc] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [imageSrc, setImageSrc] = useState(cloudinaryUrl || null);
+  const [loading, setLoading] = useState(!cloudinaryUrl);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let active = true;
     let blobUrl = null;
+
+    if (cloudinaryUrl) {
+      setImageSrc(cloudinaryUrl);
+      setLoading(false);
+      return;
+    }
 
     if (!mediaId) {
       setLoading(false);

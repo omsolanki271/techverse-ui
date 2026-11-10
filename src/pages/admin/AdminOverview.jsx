@@ -41,7 +41,7 @@ const AdminOverview = () => {
     try {
       const [users, postsRes, categories, comments] = await Promise.all([
         userService.getAllUsers().catch(() => []),
-        postService.getAllPosts({ pageNumber: 0, pageSize: 100, sortBy: 'addedDate', sortDirection: 'desc' }).catch(() => ({ content: [], totalElements: 0 })),
+        postService.getAllPosts({ pageNumber: 0, pageSize: 500, sortBy: 'addedDate', sortDirection: 'desc' }).catch(() => ({ content: [], totalElements: 0 })),
         categoryService.getAllCategories().catch(() => []),
         commentService.getAllComments().catch(() => [])
       ]);
@@ -175,7 +175,7 @@ const AdminOverview = () => {
     { label: 'Categories', path: '/admin/categories', icon: FolderTree, count: stats.totalCategories },
     { label: 'Comments', path: '/admin/comments', icon: MessageSquare, count: stats.totalComments },
     { label: 'Media Library', path: '/admin/media', icon: ImageIcon },
-    { label: 'New Article', path: '/editor', icon: PlusCircle, highlight: true }
+    { label: 'New Post', path: '/editor', icon: PlusCircle, highlight: true }
   ];
 
   const containerVariants = {

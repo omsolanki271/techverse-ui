@@ -92,11 +92,14 @@ const LandingPage = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  const getImageUrl = (imageName, postId) => {
-    if (!imageName || imageName === 'default.png') {
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+  const getImageUrl = (post) => {
+    if (!post) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+    if (post.cloudinaryUrl) return post.cloudinaryUrl;
+    if (post.media?.cloudinaryUrl) return post.media.cloudinaryUrl;
+    if (post.imageName && post.imageName !== 'default.png') {
+      return postService.getPostImage(post.postId);
     }
-    return postService.getPostImage(postId);
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
   };
 
   if (loading) {
@@ -146,8 +149,12 @@ const LandingPage = () => {
               <Link to={`/article/${featuredArticle.postId}`} className="block group">
                 <div className="relative overflow-hidden rounded-3xl bg-techverse-green h-[420px] sm:h-[480px] shadow-lg">
                   <img
-                    src={getImageUrl(featuredArticle.imageName, featuredArticle.postId)}
+                    src={getImageUrl(featuredArticle)}
                     alt={featuredArticle.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+                    }}
                     className="w-full h-full object-cover opacity-85 group-hover:scale-105 group-hover:opacity-100 transition-all duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-techverse-green via-techverse-green/40 to-transparent"></div>
@@ -219,7 +226,7 @@ const LandingPage = () => {
                     {cat.categoryTitle}
                   </h3>
                   <span className="text-[11px] text-techverse-green/60 mt-1 block">
-                    Read articles →
+                    Read posts →
                   </span>
                 </div>
               </Link>
@@ -233,11 +240,11 @@ const LandingPage = () => {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4 border-b border-techverse-green/10 pb-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-techverse-green">Latest Published Stories</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-techverse-green">Latest Published Blogs</h2>
               <p className="text-xs sm:text-sm text-techverse-green/70 mt-1">Fresh publications from our developer community</p>
             </div>
             <Link to="/explore" className="text-xs sm:text-sm font-bold text-techverse-olive hover:text-techverse-green transition flex items-center">
-              <span>View All Articles</span>
+              <span>View All Posts</span>
               <ArrowRight size={14} className="ml-1" />
             </Link>
           </motion.div>
@@ -252,8 +259,12 @@ const LandingPage = () => {
                 <div>
                   <Link to={`/article/${article.postId}`} className="block relative h-48 overflow-hidden bg-techverse-green">
                     <img
-                      src={getImageUrl(article.imageName, article.postId)}
+                      src={getImageUrl(article)}
                       alt={article.title}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     {article.category && (

@@ -249,7 +249,7 @@ const Profile = () => {
           <div className="flex items-center justify-center space-x-6 bg-techverse-eggshell/60 border border-techverse-green/10 px-5 py-3 rounded-xl self-center sm:self-end">
             <div className="text-center">
               <span className="block text-xl font-black text-techverse-green">{userStats.totalPosts}</span>
-              <span className="text-xs text-techverse-green/70 font-semibold">Articles</span>
+              <span className="text-xs text-techverse-green/70 font-semibold">Posts</span>
             </div>
             <div className="w-px h-8 bg-techverse-green/15"></div>
             <div className="text-center">
@@ -302,7 +302,7 @@ const Profile = () => {
               }`}
           >
             <BookOpen size={16} />
-            <span>My Articles & Activity</span>
+            <span>My Posts & Activity</span>
           </button>
         </div>
       </motion.div>
@@ -556,7 +556,7 @@ const Profile = () => {
           /* ARTICLES & ACTIVITY TAB */
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-black text-techverse-green mb-1">Authored Articles</h3>
+              <h3 className="text-lg font-black text-techverse-green mb-1">Authored Posts</h3>
               <p className="text-xs text-techverse-green/70">Overview of recent content created by you on TechVerse.</p>
             </div>
 
@@ -580,10 +580,10 @@ const Profile = () => {
             ) : (
               <div className="py-12 text-center text-techverse-green/60">
                 <BookOpen size={40} className="mx-auto mb-3 opacity-40 text-techverse-green" />
-                <p className="font-bold text-sm mb-1">No Articles Published Yet</p>
+                <p className="font-bold text-sm mb-1">No Posts Published Yet</p>
                 <p className="text-xs mb-4">Start sharing your tech knowledge with the TechVerse community.</p>
                 <a href="/dashboard/articles/new" className="inline-flex items-center px-4 py-2 bg-techverse-green text-techverse-eggshell text-xs font-bold rounded-lg hover:bg-techverse-green/90 transition-colors">
-                  Create First Article
+                  Create First Post
                 </a>
               </div>
             )}

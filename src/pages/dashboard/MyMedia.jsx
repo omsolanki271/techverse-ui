@@ -146,6 +146,7 @@ const MyMedia = () => {
               <div className="aspect-square bg-techverse-eggshell relative">
                 <AuthMediaImage 
                   mediaId={media.mediaId} 
+                  cloudinaryUrl={media.cloudinaryUrl}
                   alt={media.fileName} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />

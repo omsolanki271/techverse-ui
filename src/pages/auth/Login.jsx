@@ -44,7 +44,11 @@ const Login = () => {
         navigate(from, { replace: true });
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to login. Please check credentials.');
+      const rawMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : '');
+      const displayMsg = rawMsg && rawMsg.toLowerCase().includes('bad credentials')
+        ? 'Invalid email or password. Please try again.'
+        : (rawMsg || 'Failed to login. Please check your credentials.');
+      toast.error(displayMsg);
     } finally {
       setLoading(false);
     }

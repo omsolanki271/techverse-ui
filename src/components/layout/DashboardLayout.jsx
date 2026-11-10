@@ -21,7 +21,7 @@ const DashboardLayout = () => {
 
   const primaryNavItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-    { to: '/dashboard/articles', icon: BookOpen, label: 'My Articles' },
+    { to: '/dashboard/articles', icon: BookOpen, label: 'My Posts' },
     { to: '/dashboard/drafts', icon: FileText, label: 'Drafts' },
     { to: '/dashboard/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { to: '/dashboard/following', icon: Users, label: 'Community' },
@@ -49,7 +49,7 @@ const DashboardLayout = () => {
               Admin
             </Link>
           )}
-          <Link to="/explore" className="text-techverse-green opacity-70 hover:opacity-100 transition-opacity" title="Explore Articles">
+          <Link to="/explore" className="text-techverse-green opacity-70 hover:opacity-100 transition-opacity" title="Explore Blogs">
             <Search size={18} />
           </Link>
           <div className="w-px h-6 bg-techverse-green/20 mx-1"></div>
@@ -93,7 +93,7 @@ const DashboardLayout = () => {
           <Link 
             to="/dashboard/articles/new" 
             className="flex-shrink-0 flex items-center justify-center p-2.5 sm:p-3 rounded-full bg-techverse-green text-techverse-eggshell shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
-            title="Create New Article"
+            title="Create New Post"
           >
             <PenTool size={20} />
           </Link>
