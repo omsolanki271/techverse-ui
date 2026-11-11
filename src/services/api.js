@@ -1,8 +1,27 @@
 import axios from 'axios';
 
+// Resolve and normalize API base URL ensuring '/api' prefix is included exactly once
+export const getBaseApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  const raw = (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0)
+    ? envUrl.trim()
+    : 'http://localhost:8081/api';
+
+  // Strip trailing slashes
+  const clean = raw.replace(/\/+$/, '');
+
+  // If the URL already ends with /api, return it
+  if (clean.endsWith('/api')) {
+    return clean;
+  }
+
+  // Otherwise append /api
+  return `${clean}/api`;
+};
+
 // Create base instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
+  baseURL: getBaseApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -12,8 +31,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && token !== 'undefined' && token !== 'null' && token.trim().length > 0) {
+      config.headers.Authorization = `Bearer ${token.trim()}`;
     }
     return config;
   },
@@ -25,11 +44,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear token and redirect if unauthorized
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Dispatch custom event to let context know
-      window.dispatchEvent(new Event('auth-unauthorized'));
+      const url = error.config?.url || '';
+      // Do NOT clear token on auth endpoints (login/google) or public browsing
+      const isAuthRequest = url.includes('/auth/login') || url.includes('/auth/google');
+      
+      // Only clear credentials when an authenticated request to a protected endpoint is rejected
+      if (!isAuthRequest && localStorage.getItem('token')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.dispatchEvent(new Event('auth-unauthorized'));
+      }
     }
     return Promise.reject(error);
   }

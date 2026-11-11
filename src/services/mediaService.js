@@ -1,4 +1,4 @@
-import api from './api';
+import api, { getBaseApiUrl } from './api';
 
 const mediaService = {
   uploadMedia: async (userId, file, onUploadProgress) => {
@@ -25,6 +25,11 @@ const mediaService = {
     return response.data;
   },
 
+  getMediaById: async (mediaId) => {
+    const response = await api.get(`/media/${mediaId}`);
+    return response.data;
+  },
+
   getUserMedia: async (userId) => {
     const response = await api.get(`/media/user/${userId}`);
     return response.data;
@@ -41,11 +46,7 @@ const mediaService = {
   },
 
   getMediaUrl: (mediaId) => {
-    // Assuming we don't have a direct /media/image endpoint, 
-    // but typically it might be served from static resources or similar.
-    // If not, we use the VITE_API_BASE_URL.
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
-    return `${baseUrl}/media/file/${mediaId}`;
+    return `${getBaseApiUrl()}/media/file/${mediaId}`;
   }
 };
 

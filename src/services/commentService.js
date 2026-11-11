@@ -18,6 +18,16 @@ const commentService = {
     return response.data;
   },
 
+  getCommentById: async (commentId) => {
+    const response = await api.get(`/comments/${commentId}`);
+    return response.data;
+  },
+
+  updateComment: async (commentId, commentData) => {
+    const response = await api.put(`/comments/${commentId}`, commentData);
+    return response.data;
+  },
+
   getAllComments: async () => {
     const response = await api.get('/comments/');
     return response.data;

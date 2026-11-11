@@ -1,4 +1,4 @@
-import api from './api';
+import api, { getBaseApiUrl } from './api';
 
 const postService = {
   createPost: async (categoryId, postData) => {
@@ -54,8 +54,7 @@ const postService = {
   },
 
   getPostImage: (postId) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
-    return `${baseUrl}/posts/image/${postId}`;
+    return `${getBaseApiUrl()}/posts/image/${postId}`;
   },
 
   // Feature 1 & 7: Likes
