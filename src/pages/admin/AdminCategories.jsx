@@ -34,13 +34,21 @@ const AdminCategories = () => {
       toast.error('Title and description are required');
       return;
     }
+    if (title.trim().length < 3 || title.trim().length > 100) {
+      toast.error('Category title must be between 3 and 100 characters');
+      return;
+    }
+    if (description.trim().length < 10 || description.trim().length > 500) {
+      toast.error('Category description must be between 10 and 500 characters');
+      return;
+    }
 
     try {
       if (editingId) {
-        await categoryService.updateCategory(editingId, { categoryTitle: title, categoryDescription: description });
+        await categoryService.updateCategory(editingId, { categoryTitle: title.trim(), categoryDescription: description.trim() });
         toast.success('Category updated');
       } else {
-        await categoryService.createCategory({ categoryTitle: title, categoryDescription: description });
+        await categoryService.createCategory({ categoryTitle: title.trim(), categoryDescription: description.trim() });
         toast.success('Category created');
       }
       setTitle('');
@@ -48,7 +56,8 @@ const AdminCategories = () => {
       setEditingId(null);
       fetchCategories();
     } catch (err) {
-      toast.error('Failed to save category');
+      const msg = err.response?.data?.message || (err.response?.data && typeof err.response.data === 'object' ? Object.values(err.response.data)[0] : null) || 'Failed to save category';
+      toast.error(msg);
     }
   };
 

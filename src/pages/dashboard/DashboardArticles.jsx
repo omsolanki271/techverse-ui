@@ -59,11 +59,14 @@ const DashboardArticles = () => {
     visible: { opacity: 1, y: 0 }
   };
 
-  const getImageUrl = (imageName, postId) => {
-    if (!imageName || imageName === 'default.png') {
-      return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+  const getImageUrl = (post) => {
+    if (!post) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+    if (post.cloudinaryUrl) return post.cloudinaryUrl;
+    if (post.media?.cloudinaryUrl) return post.media.cloudinaryUrl;
+    if (post.imageName && post.imageName !== 'default.png') {
+      return postService.getPostImage(post.postId);
     }
-    return postService.getPostImage(postId);
+    return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
   };
 
   return (
@@ -137,17 +140,35 @@ const DashboardArticles = () => {
             >
               <div className={`flex-1 ${viewMode === 'list' ? 'flex items-center gap-6' : 'mb-6'}`}>
                 <div className={`${viewMode === 'list' ? 'w-32 h-20' : 'w-full h-32'} rounded-2xl overflow-hidden bg-techverse-eggshell mb-4 ${viewMode === 'list' ? 'mb-0 flex-shrink-0' : ''}`}>
-                  <img src={getImageUrl(article.imageName, article.postId)} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img
+                    src={getImageUrl(article)}
+                    alt={article.title}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000';
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-techverse-olive/20 text-techverse-green">
                       {article.category?.categoryTitle || 'Uncategorized'}
                     </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${article.status === 'DRAFT' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'}`}>
+                      {article.status || 'PUBLISHED'}
+                    </span>
                   </div>
                   <h3 className="text-xl font-bold text-techverse-green leading-tight mb-2 line-clamp-2 group-hover:text-techverse-olive transition-colors">
                     {article.title}
                   </h3>
+                  <div className="flex items-center gap-3 text-[11px] text-techverse-green/60 mt-1">
+                    <span>{article.views || 0} views</span>
+                    <span>•</span>
+                    <span>{article.likeCount || 0} likes</span>
+                    <span>•</span>
+                    <span>{article.bookmarkCount || 0} bookmarks</span>
+                  </div>
                 </div>
               </div>
 

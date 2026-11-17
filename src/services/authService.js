@@ -13,6 +13,17 @@ const authService = {
     }
   },
 
+  googleLogin: async (credential) => {
+    try {
+      const response = await api.post('/auth/google', {
+        credential
+      });
+      return response.data; // Expected to return { token, user: {...} }
+    } catch (error) {
+      throw error;
+    }
+  },
+
   register: async (userData) => {
     try {
       // Backend UserDto requires 'about' field, but the frontend Register UI might not have it.

@@ -35,6 +35,11 @@ const mediaService = {
     return response.data;
   },
 
+  fetchMediaBlobUrl: async (mediaId) => {
+    const response = await api.get(`/media/file/${mediaId}`, { responseType: 'blob' });
+    return URL.createObjectURL(response.data);
+  },
+
   getMediaUrl: (mediaId) => {
     // Assuming we don't have a direct /media/image endpoint, 
     // but typically it might be served from static resources or similar.

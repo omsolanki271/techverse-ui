@@ -17,8 +17,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.mobileNumber || !formData.address || !formData.email || !formData.password) {
-      toast.error('Please fill in all fields');
+    if (!formData.name.trim() || !formData.email.trim() || !formData.password) {
+      toast.error('Name, email, and password are required');
+      return;
+    }
+
+    if (formData.name.trim().length < 4) {
+      toast.error('Name must be at least 4 characters long');
       return;
     }
 
@@ -29,8 +34,15 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await authService.register(formData);
-      toast.success('Registration successful! Please login.');
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        ...(formData.mobileNumber?.trim() && { mobileNumber: formData.mobileNumber.trim() }),
+        ...(formData.address?.trim() && { address: formData.address.trim() }),
+      };
+      await authService.register(payload);
+      toast.success('Registration successful! Please sign in.');
       navigate('/auth/login');
     } catch (err) {
       if (err.response?.data) {
@@ -97,7 +109,7 @@ const Register = () => {
 
             <div>
               <label htmlFor="mobileNumber" className="block text-sm font-medium text-techverse-green">
-                Mobile Number
+                Mobile Number <span className="text-xs text-techverse-green/50">(optional)</span>
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -107,7 +119,6 @@ const Register = () => {
                   id="mobileNumber"
                   name="mobileNumber"
                   type="tel"
-                  required
                   value={formData.mobileNumber}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-techverse-olive focus:border-techverse-olive sm:text-sm bg-techverse-eggshell/20 text-techverse-green"
@@ -118,7 +129,7 @@ const Register = () => {
 
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-techverse-green">
-                Address
+                Address <span className="text-xs text-techverse-green/50">(optional)</span>
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -128,7 +139,6 @@ const Register = () => {
                   id="address"
                   name="address"
                   type="text"
-                  required
                   value={formData.address}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-techverse-olive focus:border-techverse-olive sm:text-sm bg-techverse-eggshell/20 text-techverse-green"

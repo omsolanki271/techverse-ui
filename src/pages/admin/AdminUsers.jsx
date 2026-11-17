@@ -66,12 +66,21 @@ const AdminUsers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password || !formData.about) {
-      toast.error('All fields including password are required');
+    if (!formData.name || !formData.email || !formData.about) {
+      toast.error('Name, email, and about fields are required');
       return;
     }
-    if (formData.password.length < 4) {
-      toast.error('Password must be at least 4 characters');
+    if (formData.name.trim().length < 4) {
+      toast.error('Name must be at least 4 characters long');
+      return;
+    }
+    if (modalMode === 'add') {
+      if (!formData.password || formData.password.length < 4) {
+        toast.error('Password is required and must be at least 4 characters');
+        return;
+      }
+    } else if (formData.password && formData.password.length < 4) {
+      toast.error('Password must be at least 4 characters if provided');
       return;
     }
 
@@ -79,7 +88,13 @@ const AdminUsers = () => {
     try {
       if (modalMode === 'edit') {
         const id = selectedUser.id || selectedUser.userId;
-        const updatedUser = await userService.updateUser(id, formData);
+        const payload = {
+          name: formData.name,
+          email: formData.email,
+          about: formData.about,
+          ...(formData.password && { password: formData.password })
+        };
+        const updatedUser = await userService.updateUser(id, payload);
         setUsers(users.map(u => (u.id === id || u.userId === id) ? { ...u, ...updatedUser } : u));
         toast.success('User updated successfully');
       } else {
@@ -89,7 +104,8 @@ const AdminUsers = () => {
       }
       closeModal();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save user');
+      const msg = err.response?.data?.message || (err.response?.data && typeof err.response.data === 'object' ? Object.values(err.response.data)[0] : null) || 'Failed to save user';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -194,18 +210,15 @@ const AdminUsers = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-techverse-green mb-1">{modalMode === 'edit' ? 'New Password' : 'Password'}</label>
+                <label className="block text-sm font-bold text-techverse-green mb-1">{modalMode === 'edit' ? 'New Password (leave blank to keep current)' : 'Password'}</label>
                 <input 
                   type="password" 
                   value={formData.password} 
                   onChange={e => setFormData({...formData, password: e.target.value})}
                   className="w-full border border-gray-300 rounded-md p-2 focus:ring-techverse-olive focus:border-techverse-olive"
-                  placeholder="Required by system"
-                  required
+                  placeholder={modalMode === 'edit' ? 'Optional' : 'Min 4 characters'}
+                  required={modalMode === 'add'}
                 />
-                {modalMode === 'edit' && (
-                  <p className="text-xs text-techverse-green/60 mt-1">Due to system constraints, a new password must be provided to update the user profile.</p>
-                )}
               </div>
               
               <div className="pt-4 flex justify-end space-x-3">
