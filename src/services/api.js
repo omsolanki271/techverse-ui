@@ -45,8 +45,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       const url = error.config?.url || '';
-      // Do NOT clear token on auth endpoints (login/google) or public browsing
-      const isAuthRequest = url.includes('/auth/login') || url.includes('/auth/google');
+      // Do NOT clear token on auth endpoints or public browsing
+      const isAuthRequest = url.includes('/auth/login');
 
       // Only clear credentials when an authenticated request to a protected endpoint is rejected
       if (!isAuthRequest && localStorage.getItem('token')) {
