@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create base instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://techverse-backend-zgsp.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
