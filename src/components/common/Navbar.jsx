@@ -116,7 +116,11 @@ const Navbar = () => {
               </Link>
 
               {/* Explore Mega Menu Trigger */}
-              <div className="relative">
+              <div
+                className="relative"
+                onMouseEnter={() => setOpenMegaMenu('explore')}
+                onMouseLeave={() => setOpenMegaMenu(null)}
+              >
                 <button
                   onClick={() => toggleMega('explore')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
@@ -134,7 +138,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
+                    className="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
                   >
                     <div className="space-y-1">
                       <Link
@@ -164,7 +168,11 @@ const Navbar = () => {
               </div>
 
               {/* Categories Mega Menu Trigger */}
-              <div className="relative">
+              <div
+                className="relative"
+                onMouseEnter={() => setOpenMegaMenu('categories')}
+                onMouseLeave={() => setOpenMegaMenu(null)}
+              >
                 <button
                   onClick={() => toggleMega('categories')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
@@ -182,7 +190,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-5 text-techverse-green z-50"
+                    className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-5 text-techverse-green z-50"
                   >
                     <div className="flex items-center justify-between pb-3 mb-3 border-b border-techverse-green/10">
                       <span className="text-xs font-black uppercase tracking-wider text-techverse-green/60">
@@ -214,7 +222,11 @@ const Navbar = () => {
               </div>
 
               {/* Resources Mega Menu */}
-              <div className="relative">
+              <div
+                className="relative"
+                onMouseEnter={() => setOpenMegaMenu('resources')}
+                onMouseLeave={() => setOpenMegaMenu(null)}
+              >
                 <button
                   onClick={() => toggleMega('resources')}
                   className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
@@ -232,11 +244,11 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 mt-3 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
+                    className="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
                   >
                     <div className="space-y-1">
-                      <a
-                        href="/#why-techverse"
+                      <Link
+                        to="/resources/why-techverse"
                         className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-techverse-eggshell transition"
                       >
                         <Info className="text-techverse-olive shrink-0 mt-0.5" size={18} />
@@ -244,10 +256,10 @@ const Navbar = () => {
                           <div className="font-bold text-sm">Why TechVerse?</div>
                           <div className="text-xs text-techverse-green/60">Our philosophy & mission</div>
                         </div>
-                      </a>
+                      </Link>
 
-                      <a
-                        href="/#how-it-works"
+                      <Link
+                        to="/resources/how-it-works"
                         className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-techverse-eggshell transition"
                       >
                         <Layers className="text-techverse-olive shrink-0 mt-0.5" size={18} />
@@ -255,7 +267,7 @@ const Navbar = () => {
                           <div className="font-bold text-sm">How It Works</div>
                           <div className="text-xs text-techverse-green/60">Explore, write, and share</div>
                         </div>
-                      </a>
+                      </Link>
                     </div>
                   </motion.div>
                 )}
@@ -319,7 +331,11 @@ const Navbar = () => {
                 )}
 
                 {/* User Dropdown */}
-                <div className="relative">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setOpenMegaMenu('user')}
+                  onMouseLeave={() => setOpenMegaMenu(null)}
+                >
                   <button
                     onClick={() => toggleMega('user')}
                     className="flex items-center gap-2 p-1 rounded-full border border-techverse-olive/50 hover:border-techverse-olive transition"
@@ -335,7 +351,7 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-3 text-techverse-green z-50"
+                      className="absolute right-0 mt-1 w-64 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-3 text-techverse-green z-50"
                     >
                       <div className="px-3 py-2 border-b border-techverse-green/5 mb-1">
                         <div className="font-bold text-sm truncate">{user?.name}</div>
@@ -444,6 +460,27 @@ const Navbar = () => {
               <Link to="/explore" onClick={() => setMobileMenuOpen(false)} className="text-base font-bold py-1.5">
                 Explore All Blogs
               </Link>
+              <div className="py-2 border-y border-techverse-olive/20">
+                <div className="text-xs font-bold uppercase tracking-wider text-techverse-olive mb-2">
+                  Resources
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    to="/resources/why-techverse"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-sm py-1 text-techverse-eggshell/80 hover:text-techverse-olive"
+                  >
+                    Why TechVerse?
+                  </Link>
+                  <Link
+                    to="/resources/how-it-works"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-sm py-1 text-techverse-eggshell/80 hover:text-techverse-olive"
+                  >
+                    How It Works
+                  </Link>
+                </div>
+              </div>
 
               {/* Categories Accordion */}
               <div className="py-2 border-y border-techverse-olive/20">

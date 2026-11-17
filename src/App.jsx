@@ -17,6 +17,7 @@ import LandingPage from './pages/public/LandingPage';
 import Explore from './pages/public/Explore';
 import ArticleDetails from './pages/public/ArticleDetails';
 import AuthorProfile from './pages/public/AuthorProfile';
+import ResourcePage from './pages/public/ResourcePage';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -68,6 +69,7 @@ function App() {
               <Route path="category/:categoryId" element={<Explore />} />
               <Route path="search" element={<Explore />} />
               <Route path="author/:userId" element={<AuthorProfile />} />
+              <Route path="resources/:resource" element={<ResourcePage />} />
 
               {/* Standalone Auth Routes embedded in MainLayout */}
               <Route path="auth/login" element={<Login />} />
