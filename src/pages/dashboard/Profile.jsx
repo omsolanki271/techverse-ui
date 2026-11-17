@@ -31,6 +31,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import userService from '../../services/userService';
 import postService from '../../services/postService';
+import authService from '../../services/authService';
 
 const Profile = () => {
   const { user, updateUserContext } = useAuth();
@@ -50,6 +51,7 @@ const Profile = () => {
     githubUrl: '',
     linkedinUrl: '',
     instaUrl: '',
+    currentPassword: '',
     password: '',
     confirmPassword: ''
   });
@@ -84,6 +86,7 @@ const Profile = () => {
           githubUrl: data.githubUrl || '',
           linkedinUrl: data.linkedinUrl || '',
           instaUrl: data.instaUrl || '',
+          currentPassword: '',
           password: '',
           confirmPassword: ''
         }));
@@ -133,19 +136,40 @@ const Profile = () => {
       return;
     }
 
-    if (activeTab === 'security' && formData.password) {
-      if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
+    const isPasswordChange = formData.currentPassword || formData.password || formData.confirmPassword || activeTab === 'security';
+
+    if (isPasswordChange && (formData.currentPassword || formData.password || formData.confirmPassword)) {
+      if (!formData.currentPassword) {
+        toast.error('Please enter your existing password to verify');
         return;
       }
-      if (formData.password.length < 6) {
-        toast.error('Password must be at least 6 characters long');
+      if (!formData.password) {
+        toast.error('Please enter a new password');
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('New passwords do not match');
+        return;
+      }
+      if (formData.password.length < 4) {
+        toast.error('New password must be at least 4 characters long');
         return;
       }
     }
 
     try {
       setSaving(true);
+
+      // Verify existing password if password change is requested
+      if (formData.password && formData.currentPassword) {
+        try {
+          await authService.login(formData.email || user?.email, formData.currentPassword);
+        } catch (verifyErr) {
+          toast.error('Existing password is invalid. Password update rejected.');
+          setSaving(false);
+          return;
+        }
+      }
 
       const updatePayload = {
         name: formData.name,
@@ -171,7 +195,7 @@ const Profile = () => {
       toast.success('Profile updated successfully!');
 
       // Reset password fields
-      setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setFormData(prev => ({ ...prev, currentPassword: '', password: '', confirmPassword: '' }));
     } catch (error) {
       console.error('Error updating profile:', error);
       const errorMsg = error.response?.data?.message
@@ -227,7 +251,7 @@ const Profile = () => {
             {/* Info */}
             <div className="pb-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h1 className="text-2xl sm:text-3xl font-black text-techverse-eggshell">{formData.name || 'User Name'}</h1>
+                <h1 className="text-2xl sm:text-3xl font-black text-techverse-olive">{formData.name || 'User Name'}</h1>
                 {/* <span className="px-3 py-0.5 rounded-full text-xs font-extrabold uppercase bg-techverse-olive/30 text-techverse-green border border-techverse-olive/40">
                   {roleName.replace('ROLE_', '')}
                 </span> */}
@@ -264,8 +288,8 @@ const Profile = () => {
           <button
             onClick={() => setActiveTab('personal')}
             className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'personal'
-                ? 'border-techverse-green text-techverse-green'
-                : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
+              ? 'border-techverse-green text-techverse-green'
+              : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
               }`}
           >
             <User size={16} />
@@ -275,8 +299,8 @@ const Profile = () => {
           <button
             onClick={() => setActiveTab('social')}
             className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'social'
-                ? 'border-techverse-green text-techverse-green'
-                : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
+              ? 'border-techverse-green text-techverse-green'
+              : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
               }`}
           >
             <Globe size={16} />
@@ -286,8 +310,8 @@ const Profile = () => {
           <button
             onClick={() => setActiveTab('security')}
             className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'security'
-                ? 'border-techverse-green text-techverse-green'
-                : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
+              ? 'border-techverse-green text-techverse-green'
+              : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
               }`}
           >
             <Shield size={16} />
@@ -297,8 +321,8 @@ const Profile = () => {
           <button
             onClick={() => setActiveTab('stats')}
             className={`flex items-center space-x-2 py-4 px-4 font-bold text-sm border-b-2 transition-colors whitespace-nowrap ${activeTab === 'stats'
-                ? 'border-techverse-green text-techverse-green'
-                : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
+              ? 'border-techverse-green text-techverse-green'
+              : 'border-transparent text-techverse-green/60 hover:text-techverse-green'
               }`}
           >
             <BookOpen size={16} />
@@ -481,50 +505,70 @@ const Profile = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-black text-techverse-green mb-1">Account Security</h3>
-                  <p className="text-xs text-techverse-green/70">Change your password to keep your account safe.</p>
+                  <p className="text-xs text-techverse-green/70">Verify your existing password and set a new password to keep your account safe.</p>
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start space-x-3 text-amber-900 text-xs font-medium max-w-2xl">
                   <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    Leave these fields blank if you do not wish to change your current password.
+                    Enter your existing password to verify your identity before setting a new password.
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
-                  {/* New Password */}
+                <div className="space-y-6 max-w-2xl">
+                  {/* Existing Password */}
                   <div>
                     <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
-                      New Password
+                      Existing / Current Password *
                     </label>
                     <div className="relative">
                       <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
                       <input
                         type="password"
-                        name="password"
-                        value={formData.password}
+                        name="currentPassword"
+                        value={formData.currentPassword}
                         onChange={handleChange}
-                        placeholder="••••••••"
+                        placeholder="Enter current password"
                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* Confirm Password */}
-                  <div>
-                    <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
-                      Confirm New Password
-                    </label>
-                    <div className="relative">
-                      <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* New Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-xs font-bold text-techverse-green uppercase tracking-wider mb-2">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <Key size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-techverse-green/50" />
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-techverse-green/20 focus:border-techverse-green focus:ring-2 focus:ring-techverse-green/20 outline-none text-sm font-medium transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
