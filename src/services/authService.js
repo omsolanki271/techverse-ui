@@ -14,16 +14,12 @@ const authService = {
   },
 
   register: async (userData) => {
-    try {
-      // Backend UserDto requires 'about' field, but the frontend Register UI might not have it.
-      if (!userData.about) {
-        userData.about = 'I am a new user on TechVerse.';
-      }
-      const response = await api.post('/users/', userData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const payload = {
+      ...userData,
+      about: userData.about || 'I am a new user on TechVerse.',
+    };
+    const response = await api.post('/users/', payload);
+    return response.data;
   }
 };
 

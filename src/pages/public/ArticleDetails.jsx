@@ -4,7 +4,7 @@ import { motion, useScroll, useSpring } from 'framer-motion';
 import { 
   Clock, Bookmark, Heart, MessageCircle, 
   Trash2, Edit3, LogIn, Share2, Eye,
-  UserPlus, UserCheck, Bell, BellOff, ArrowLeft, Check
+  UserPlus, UserCheck, ArrowLeft, Check
 } from 'lucide-react';
 import postService from '../../services/postService';
 import userService from '../../services/userService';
@@ -34,12 +34,10 @@ const ArticleDetails = () => {
   const [shareCount, setShareCount] = useState(0);
   const [copied, setCopied] = useState(false);
 
-  // Author follow / subscribe state
+  // Author follow state
   const [authorFollowed, setAuthorFollowed] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
-  const [authorSubscribed, setAuthorSubscribed] = useState(false);
   const [followingAction, setFollowingAction] = useState(false);
-  const [subAction, setSubAction] = useState(false);
   
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -68,10 +66,6 @@ const ArticleDetails = () => {
             setAuthorFollowed(authorStatus.following || false);
             setFollowerCount(authorStatus.followerCount || 0);
 
-            if (user) {
-              const subStatus = await userService.getSubscribeStatus(postData.user.id);
-              setAuthorSubscribed(subStatus.subscribed || false);
-            }
           } catch (e) {
             // Unauthenticated or author lookup error
           }
@@ -182,21 +176,6 @@ const ArticleDetails = () => {
     }
   };
 
-  const handleSubscribeToggle = async () => {
-    if (!requireAuth('subscribe to this author')) return;
-    if (!article?.user?.id) return;
-    setSubAction(true);
-    try {
-      const res = await userService.toggleSubscribe(article.user.id);
-      setAuthorSubscribed(res.subscribed);
-      toast.success(res.subscribed ? `Subscribed to ${article.user.name}'s publications!` : `Unsubscribed from ${article.user.name}`);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update subscription');
-    } finally {
-      setSubAction(false);
-    }
-  };
-
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -223,7 +202,7 @@ const ArticleDetails = () => {
     if (!(await confirm('Delete this comment?'))) return;
     try {
       await commentService.deleteComment(commentId);
-      setComments(comments.filter(c => c.commentId !== commentId));
+      setComments(comments.filter(c => (c.id ?? c.commentId) !== commentId));
       toast.success('Comment deleted successfully');
     } catch (err) {
       toast.error('Failed to delete comment');
@@ -440,18 +419,6 @@ const ArticleDetails = () => {
                       <span>{authorFollowed ? 'Following' : 'Follow Author'}</span>
                     </button>
 
-                    <button
-                      onClick={handleSubscribeToggle}
-                      disabled={subAction}
-                      className={`w-full py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition border ${
-                        authorSubscribed
-                          ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                          : 'bg-white text-techverse-green border-techverse-green/20 hover:bg-techverse-eggshell'
-                      }`}
-                    >
-                      {authorSubscribed ? <BellOff size={14} /> : <Bell size={14} />}
-                      <span>{authorSubscribed ? 'Subscribed' : 'Subscribe for Updates'}</span>
-                    </button>
                   </>
                 )}
 
@@ -505,7 +472,7 @@ const ArticleDetails = () => {
           {/* Comment Stream */}
           <div className="space-y-6">
             {comments.map((comment) => (
-              <div key={comment.commentId} className="p-5 bg-white border border-techverse-green/10 rounded-xl shadow-sm">
+              <div key={comment.id ?? comment.commentId} className="p-5 bg-white border border-techverse-green/10 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 rounded-full bg-techverse-olive/30 text-techverse-green flex items-center justify-center font-bold text-xs">
@@ -515,7 +482,7 @@ const ArticleDetails = () => {
                   </div>
                   {(isAdmin() || (user && comment.user && (user.id === comment.user.id || user.userId === comment.user.id))) && (
                     <button 
-                      onClick={() => handleDeleteComment(comment.commentId)}
+                      onClick={() => handleDeleteComment(comment.id ?? comment.commentId)}
                       className="text-red-500 hover:text-red-700 p-1"
                       title="Delete Comment"
                     >

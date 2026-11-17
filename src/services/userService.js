@@ -47,21 +47,6 @@ const userService = {
     return response.data;
   },
 
-  // Feature 3: Subscribe to Authors
-  toggleSubscribe: async (authorId) => {
-    const response = await api.post(`/users/${authorId}/subscribe`);
-    return response.data;
-  },
-
-  getSubscribeStatus: async (authorId) => {
-    const response = await api.get(`/users/${authorId}/subscribe-status`);
-    return response.data;
-  },
-
-  getMySubscriptions: async () => {
-    const response = await api.get('/users/subscriptions/my-subscriptions');
-    return response.data;
-  }
 };
 
 export default userService;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Bell, UserMinus, ArrowUpRight, Loader2, BookOpen } from 'lucide-react';
+import { Users, UserMinus, ArrowUpRight, Loader2, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import userService from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
@@ -10,21 +10,15 @@ const DashboardFollowing = () => {
   const { user } = useAuth();
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState('following'); // 'following' | 'subscriptions'
   const [followingList, setFollowingList] = useState([]);
-  const [subList, setSubList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const userId = user?.userId || user?.id;
-      const [followingData, subData] = await Promise.all([
-        userService.getFollowing(userId).catch(() => []),
-        userService.getMySubscriptions().catch(() => [])
-      ]);
+      const followingData = await userService.getFollowing(userId);
       setFollowingList(Array.isArray(followingData) ? followingData : []);
-      setSubList(Array.isArray(subData) ? subData : []);
     } catch (err) {
       toast.error('Failed to load community connections');
     } finally {
@@ -46,23 +40,11 @@ const DashboardFollowing = () => {
     }
   };
 
-  const handleUnsubscribe = async (authorId) => {
-    try {
-      await userService.toggleSubscribe(authorId);
-      setSubList(subList.filter(u => u.id !== authorId));
-      toast.success('Unsubscribed from author updates');
-    } catch {
-      toast.error('Failed to unsubscribe');
-    }
-  };
-
-  const list = activeTab === 'following' ? followingList : subList;
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[350px]">
         <Loader2 className="w-10 h-10 animate-spin text-techverse-olive mb-3" />
-        <p className="text-sm font-medium text-techverse-green/70">Loading authors and subscriptions...</p>
+        <p className="text-sm font-medium text-techverse-green/70">Loading followed authors...</p>
       </div>
     );
   }
@@ -73,46 +55,19 @@ const DashboardFollowing = () => {
         <div>
           <h1 className="text-3xl font-black text-techverse-green tracking-tight">Community & Following</h1>
           <p className="text-sm text-techverse-green/70 mt-1">
-            Manage authors you follow and newsletters you subscribe to.
+            Manage the authors you follow.
           </p>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-techverse-green/10 space-x-6 text-sm font-bold">
-        <button
-          onClick={() => setActiveTab('following')}
-          className={`pb-3 flex items-center gap-2 transition-colors relative ${
-            activeTab === 'following'
-              ? 'text-techverse-green border-b-2 border-techverse-green'
-              : 'text-techverse-green/50 hover:text-techverse-green'
-          }`}
-        >
-          <Users size={16} />
-          <span>Following ({followingList.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('subscriptions')}
-          className={`pb-3 flex items-center gap-2 transition-colors relative ${
-            activeTab === 'subscriptions'
-              ? 'text-techverse-green border-b-2 border-techverse-green'
-              : 'text-techverse-green/50 hover:text-techverse-green'
-          }`}
-        >
-          <Bell size={16} />
-          <span>Subscriptions ({subList.length})</span>
-        </button>
-      </div>
-
-      {list.length === 0 ? (
+      {followingList.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-2xl border border-techverse-green/10 p-8 shadow-sm">
           <Users size={48} className="mx-auto text-techverse-green/30 mb-3" />
           <h3 className="text-lg font-bold text-techverse-green mb-1">
-            {activeTab === 'following' ? 'Not following any authors yet' : 'No author subscriptions yet'}
+            Not following any authors yet
           </h3>
           <p className="text-xs text-techverse-green/60 max-w-sm mx-auto mb-6">
-            Explore articles and visit author profiles to follow their work and subscribe to their publication updates.
+            Explore articles and visit author profiles to follow their work.
           </p>
           <Link
             to="/explore"
@@ -124,7 +79,7 @@ const DashboardFollowing = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {list.map((author) => (
+          {followingList.map((author) => (
             <motion.div
               key={author.id}
               initial={{ opacity: 0, y: 10 }}
@@ -163,22 +118,13 @@ const DashboardFollowing = () => {
                   <ArrowUpRight size={13} />
                 </Link>
 
-                {activeTab === 'following' ? (
-                  <button
-                    onClick={() => handleUnfollow(author.id)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md bg-techverse-eggshell text-techverse-green hover:bg-red-50 hover:text-red-600 transition"
-                  >
-                    <UserMinus size={13} />
-                    <span>Unfollow</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleUnsubscribe(author.id)}
-                    className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md bg-techverse-eggshell text-techverse-green hover:bg-red-50 hover:text-red-600 transition"
-                  >
-                    <span>Unsubscribe</span>
-                  </button>
-                )}
+                <button
+                  onClick={() => handleUnfollow(author.id)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-md bg-techverse-eggshell text-techverse-green hover:bg-red-50 hover:text-red-600 transition"
+                >
+                  <UserMinus size={13} />
+                  <span>Unfollow</span>
+                </button>
               </div>
             </motion.div>
           ))}

@@ -30,6 +30,14 @@ const api = axios.create({
 // Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
+    const requestUrl = (config.url || '').split('?')[0];
+    const isPublicAuthRequest = config.method?.toUpperCase() === 'POST'
+      && ['/auth/login', '/users', '/users/'].includes(requestUrl);
+    if (isPublicAuthRequest) {
+      delete config.headers.Authorization;
+      return config;
+    }
+
     const token = localStorage.getItem('token');
     if (token && token !== 'undefined' && token !== 'null' && token.trim().length > 0) {
       config.headers.Authorization = `Bearer ${token.trim()}`;

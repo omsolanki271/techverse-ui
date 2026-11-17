@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   User, Mail, MapPin, Globe, BookOpen, Clock,
   ArrowLeft, RefreshCw, CheckCircle2, ArrowRight,
-  UserPlus, UserCheck, Bell, BellOff, Heart, Bookmark, Share2, Eye
+  UserPlus, UserCheck, Heart, Bookmark, Share2, Eye
 } from 'lucide-react';
 import userService from '../../services/userService';
 import postService from '../../services/postService';
@@ -47,7 +47,6 @@ const AuthorProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
-  const [isSubscribed, setIsSubscribed] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -55,11 +54,10 @@ const AuthorProfile = () => {
       try {
         setLoading(true);
 
-        const [userData, postsData, followStatus, subStatus] = await Promise.allSettled([
+        const [userData, postsData, followStatus] = await Promise.allSettled([
           userService.getUserById(userId),
           postService.getPostsByUser(userId, { pageSize: 50, sortBy: 'addedDate', sortDirection: 'desc' }),
-          userService.getFollowStatus(userId),
-          user ? userService.getSubscribeStatus(userId) : Promise.resolve({ subscribed: false })
+          userService.getFollowStatus(userId)
         ]);
 
         if (userData.status === 'fulfilled') {
@@ -81,9 +79,6 @@ const AuthorProfile = () => {
           setFollowingCount(followStatus.value.followingCount || 0);
         }
 
-        if (subStatus.status === 'fulfilled') {
-          setIsSubscribed(subStatus.value.subscribed || false);
-        }
       } catch (error) {
         console.error('Error loading author profile page:', error);
       } finally {
@@ -115,20 +110,6 @@ const AuthorProfile = () => {
       toast.success(res.following ? `Following ${author?.name}` : `Unfollowed ${author?.name}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update follow status');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSubscribeToggle = async () => {
-    if (!requireAuth('subscribe to this author')) return;
-    setActionLoading(true);
-    try {
-      const res = await userService.toggleSubscribe(userId);
-      setIsSubscribed(res.subscribed);
-      toast.success(res.subscribed ? `Subscribed to ${author?.name}'s publications!` : `Unsubscribed from ${author?.name}`);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update subscription');
     } finally {
       setActionLoading(false);
     }
@@ -282,18 +263,6 @@ const AuthorProfile = () => {
                     <span>{isFollowing ? 'Following' : 'Follow Author'}</span>
                   </button>
 
-                  <button
-                    onClick={handleSubscribeToggle}
-                    disabled={actionLoading}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm border ${
-                      isSubscribed
-                        ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                        : 'bg-white text-techverse-green border-techverse-green/20 hover:bg-techverse-eggshell'
-                    }`}
-                  >
-                    {isSubscribed ? <BellOff size={14} /> : <Bell size={14} />}
-                    <span>{isSubscribed ? 'Subscribed' : 'Subscribe'}</span>
-                  </button>
                 </div>
               )}
             </div>
