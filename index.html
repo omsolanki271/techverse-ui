@@ -2,9 +2,84 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/icon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon/apple-touch-icon.png" />
+    <link rel="manifest" href="/icon/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Techverse</title>
+    <meta name="theme-color" content="#133215" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="TechVerse is a technology blog for developers and engineers. Discover practical articles, software architecture insights, coding guides, and ideas shaping the digital world."
+    />
+    <meta
+      name="keywords"
+      content="technology blog, developer blog, software development, programming, coding, web development, software architecture, engineering, tech articles"
+    />
+    <meta name="author" content="TechVerse" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="/index.html" />
+
+    <title>TechVerse | Technology, Software Development &amp; Engineering Insights</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TechVerse" />
+    <meta property="og:title" content="TechVerse | Technology, Software Development &amp; Engineering Insights" />
+    <meta
+      property="og:description"
+      content="Discover practical technology articles, software architecture insights, coding guides, and ideas from the TechVerse developer community."
+    />
+    <meta property="og:url" content="/index.html" />
+    <meta property="og:image" content="/icon/android-chrome-512x512.png" />
+    <meta property="og:image:alt" content="TechVerse technology blog" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TechVerse | Technology, Software Development &amp; Engineering Insights" />
+    <meta
+      name="twitter:description"
+      content="Read and share practical ideas about software development, architecture, coding, and technology."
+    />
+    <meta name="twitter:image" content="/icon/android-chrome-512x512.png" />
+    <meta name="twitter:image:alt" content="TechVerse technology blog" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "/index.html#organization",
+            "name": "TechVerse",
+            "url": "/index.html",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "/icon/android-chrome-512x512.png"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "/index.html#website",
+            "name": "TechVerse",
+            "url": "/index.html",
+            "publisher": {
+              "@id": "/#organization"
+            },
+            "description": "A technology blog for developers, engineers, and technology enthusiasts.",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "/explore?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

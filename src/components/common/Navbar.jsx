@@ -20,6 +20,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [navSearchQuery, setNavSearchQuery] = useState('');
   const searchInputRef = useRef(null);
+  const closeMenuTimeoutRef = useRef(null);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,6 +71,14 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    return () => {
+      if (closeMenuTimeoutRef.current) {
+        clearTimeout(closeMenuTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
@@ -80,6 +89,31 @@ const Navbar = () => {
 
   const toggleMega = (menu) => {
     setOpenMegaMenu(openMegaMenu === menu ? null : menu);
+  };
+
+  const openHoveredMenu = (menu) => {
+    if (closeMenuTimeoutRef.current) {
+      clearTimeout(closeMenuTimeoutRef.current);
+      closeMenuTimeoutRef.current = null;
+    }
+    setOpenMegaMenu(menu);
+  };
+
+  const delayMenuClose = () => {
+    if (closeMenuTimeoutRef.current) {
+      clearTimeout(closeMenuTimeoutRef.current);
+    }
+    closeMenuTimeoutRef.current = setTimeout(() => {
+      setOpenMegaMenu(null);
+      closeMenuTimeoutRef.current = null;
+    }, 250);
+  };
+
+  const keepMenuOpen = () => {
+    if (closeMenuTimeoutRef.current) {
+      clearTimeout(closeMenuTimeoutRef.current);
+      closeMenuTimeoutRef.current = null;
+    }
   };
 
   return (
@@ -118,8 +152,8 @@ const Navbar = () => {
               {/* Explore Mega Menu Trigger */}
               <div
                 className="relative"
-                onMouseEnter={() => setOpenMegaMenu('explore')}
-                onMouseLeave={() => setOpenMegaMenu(null)}
+                onMouseEnter={() => openHoveredMenu('explore')}
+                onMouseLeave={delayMenuClose}
               >
                 <button
                   onClick={() => toggleMega('explore')}
@@ -138,6 +172,8 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
+                    onMouseEnter={keepMenuOpen}
+                    onMouseLeave={delayMenuClose}
                     className="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
                   >
                     <div className="space-y-1">
@@ -170,8 +206,8 @@ const Navbar = () => {
               {/* Categories Mega Menu Trigger */}
               <div
                 className="relative"
-                onMouseEnter={() => setOpenMegaMenu('categories')}
-                onMouseLeave={() => setOpenMegaMenu(null)}
+                onMouseEnter={() => openHoveredMenu('categories')}
+                onMouseLeave={delayMenuClose}
               >
                 <button
                   onClick={() => toggleMega('categories')}
@@ -190,6 +226,8 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
+                    onMouseEnter={keepMenuOpen}
+                    onMouseLeave={delayMenuClose}
                     className="absolute left-0 mt-1 w-80 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-5 text-techverse-green z-50"
                   >
                     <div className="flex items-center justify-between pb-3 mb-3 border-b border-techverse-green/10">
@@ -224,8 +262,8 @@ const Navbar = () => {
               {/* Resources Mega Menu */}
               <div
                 className="relative"
-                onMouseEnter={() => setOpenMegaMenu('resources')}
-                onMouseLeave={() => setOpenMegaMenu(null)}
+                onMouseEnter={() => openHoveredMenu('resources')}
+                onMouseLeave={delayMenuClose}
               >
                 <button
                   onClick={() => toggleMega('resources')}
@@ -244,6 +282,8 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
+                    onMouseEnter={keepMenuOpen}
+                    onMouseLeave={delayMenuClose}
                     className="absolute left-0 mt-1 w-72 bg-white rounded-2xl shadow-xl border border-techverse-green/10 p-4 text-techverse-green z-50"
                   >
                     <div className="space-y-1">
@@ -333,8 +373,8 @@ const Navbar = () => {
                 {/* User Dropdown */}
                 <div
                   className="relative"
-                  onMouseEnter={() => setOpenMegaMenu('user')}
-                  onMouseLeave={() => setOpenMegaMenu(null)}
+                  onMouseEnter={() => openHoveredMenu('user')}
+                  onMouseLeave={delayMenuClose}
                 >
                   <button
                     onClick={() => toggleMega('user')}
@@ -351,6 +391,8 @@ const Navbar = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
+                      onMouseEnter={keepMenuOpen}
+                      onMouseLeave={delayMenuClose}
                       className="absolute right-0 mt-1 w-64 bg-white rounded-2xl shadow-2xl border border-techverse-green/10 p-3 text-techverse-green z-50"
                     >
                       <div className="px-3 py-2 border-b border-techverse-green/5 mb-1">

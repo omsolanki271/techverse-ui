@@ -34,7 +34,8 @@ const InitialLoader = ({ onComplete }) => {
           className="text-center mb-12"
         >
           <h1 className="text-5xl font-black tracking-tighter mb-2">
-            TECH<span className="text-techverse-olive">VERSE</span>
+            <span className="text-techverse-eggshell">TECH</span> 
+            <span className="text-techverse-olive">VERSE</span>
           </h1>
           <motion.p 
             initial={{ opacity: 0 }}
